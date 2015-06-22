@@ -15,8 +15,8 @@ public class StartActivity extends Activity implements OnClickListener{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.start_activity);
-		loginButton = (Button) findViewById(R.id.login);
-		registrationButton = (Button) findViewById(R.id.register);
+		loginButton = (Button) findViewById(R.id.loginActivity);
+		registrationButton = (Button) findViewById(R.id.registerActivity);
 		loginButton.setOnClickListener(this);
 		registrationButton.setOnClickListener(this);		
 	}

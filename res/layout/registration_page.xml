@@ -2,10 +2,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/linLayout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center_vertical"
+    android:layout_height="match_parent"
+    android:gravity="center"
     android:orientation="vertical"
-    android:padding="5dp"
+    android:background="#e5a433"
     tools:context=".RegistrationActivity" >
 
     <EditText
@@ -51,7 +51,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:background="#34d535"
+        android:background="#84d565"
         android:text="Register" />
 
 </LinearLayout>

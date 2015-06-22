@@ -1,10 +1,9 @@
   <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
      xmlns:tools="http://schemas.android.com/tools"
      android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:layout_gravity="center_vertical"
-     android:background="#45a403"
-     android:gravity="fill_horizontal"
+     android:layout_height="match_parent"     
+     android:gravity="center"
+    android:background="#e5a433"
      android:orientation="vertical"
      android:padding="15dp"
      tools:context=".LoginActivity" >
@@ -12,21 +11,28 @@
         <EditText
             android:id="@+id/emailVolunteerId"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"            
-            android:hint="Enter your Email-Id or Volunteer No"
+            android:layout_height="wrap_content" 
+            android:background="#2a6063"           
+            android:hint="Enter your Email-Id/VolunteerId"
+            android:padding="10dp"
             android:singleLine="true" />
 
         <EditText
             android:id="@+id/password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="#2a6063"
             android:hint="Your password here!"
+            android:layout_marginTop="10dp"
+            android:padding="10dp"
             android:inputType="textPassword" />
 
         <Button
             android:id="@+id/loginButton"
-            android:layout_width="280dp"
-            android:background="#f5a403"
+            android:layout_width="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:background="#55a453"
+            android:layout_marginTop="10dp"
             android:layout_height="wrap_content"
             android:text="LOGIN!!" />
  

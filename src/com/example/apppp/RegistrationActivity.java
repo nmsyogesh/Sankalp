@@ -36,7 +36,7 @@ public class RegistrationActivity extends Activity implements OnClickListener{
 					Toast.LENGTH_LONG).show();
 			
 			try {
-				startActivity(new Intent(this, Class.forName("com.example.apppp.MainActivity")));
+				startActivity(new Intent(this, Class.forName("com.example.apppp.HomePage")));
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

@@ -32,7 +32,7 @@ public class LoginActivity extends Activity implements OnClickListener {
 						Toast.LENGTH_LONG).show();
 
 				startActivity(new Intent(this,
-						Class.forName("com.example.apppp.MainActivity")));
+						Class.forName("com.example.apppp.HomePage")));
 
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
