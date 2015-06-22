@@ -1,0 +1,57 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/linLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_vertical"
+    android:orientation="vertical"
+    android:padding="5dp"
+    tools:context=".RegistrationActivity" >
+
+    <EditText
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter your name"
+        android:inputType="textCapWords" />
+
+    <EditText
+        android:id="@+id/rollNo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter your RollNo"
+        android:inputType="textMultiLine" />
+
+    <EditText
+        android:id="@+id/batch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Your Batch"
+        android:inputType="number"
+        android:cursorVisible="true"
+        android:focusable="true"
+         />
+
+    <EditText
+        android:id="@+id/email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter your EmailAddress"
+        android:inputType="textEmailAddress" />
+
+    <EditText
+        android:id="@+id/password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter your Password"
+        android:inputType="textPassword" />
+
+    <Button
+        android:id="@+id/registerButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:background="#34d535"
+        android:text="Register" />
+
+</LinearLayout>
