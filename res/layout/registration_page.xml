@@ -3,9 +3,9 @@
     android:id="@+id/linLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#73CDDF"
     android:gravity="center"
     android:orientation="vertical"
-    android:background="#73CDDF"
     tools:context=".RegistrationActivity" >
 
     <EditText
@@ -26,11 +26,19 @@
         android:id="@+id/batch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Your Batch"
-        android:inputType="number"
         android:cursorVisible="true"
         android:focusable="true"
-         />
+        android:hint="Your Batch"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/mobileNo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:cursorVisible="true"
+        android:focusable="true"
+        android:hint="Enter your Mobile Number"
+        android:inputType="number" />
 
     <EditText
         android:id="@+id/email"

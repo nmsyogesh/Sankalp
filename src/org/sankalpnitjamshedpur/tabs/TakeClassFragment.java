@@ -101,22 +101,15 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 	}
 
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == PICK_FROM_GALLERY
-				&& resultCode == android.app.Activity.RESULT_OK) {
+				&& resultCode == android.app.Activity.RESULT_OK && data != null && data.getData() != null) {
 			/**
 			 * Get Path
 			 */
 			Uri selectedImage = data.getData();
-			String[] filePathColumn = { MediaStore.Images.Media.DATA };
-
-			Cursor cursor = getActivity().getApplicationContext().getContentResolver().query(selectedImage,
-					filePathColumn, null, null, null);
-			cursor.moveToFirst();
-			columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-			attachmentFile = cursor.getString(columnIndex);
-			Log.e("Attachment Path:", attachmentFile);
-			URIList.add(Uri.parse("file://" + attachmentFile));
-			cursor.close();
+			URIList.add(selectedImage);
+			previewCapturedImage();
 		}
 		if (requestCode == CAMERA_CAPTURE_IMAGE_REQUEST_CODE) {
 			if (resultCode == android.app.Activity.RESULT_OK) {
@@ -277,13 +270,19 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 	}
 
 	public void openGallery() {
-		Intent intent = new Intent();
-		intent.setType("image/*");
-		intent.setAction(Intent.ACTION_GET_CONTENT);
-		intent.putExtra("return-data", true);
-		startActivityForResult(
-				Intent.createChooser(intent, "Complete action using"),
-				PICK_FROM_GALLERY);
+		
+		Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+	    getIntent.setType("image/*");
+
+	    Intent pickIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+	    pickIntent.setType("image/*");
+
+	    Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
+	    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {pickIntent});
+
+	    chooserIntent.putExtra("return-data", true);
+	    startActivityForResult(chooserIntent, PICK_FROM_GALLERY);  
+	    
 	}
 
 	/**

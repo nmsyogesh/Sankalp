@@ -246,7 +246,7 @@ int id action_context_bar 0x7f09001d
 int id action_menu_divider 0x7f090002
 int id action_menu_presenter 0x7f090003
 int id action_mode_close_button 0x7f090024
-int id action_settings 0x7f090050
+int id action_settings 0x7f090051
 int id activity_chooser_view_content 0x7f090025
 int id always 0x7f09000f
 int id batch 0x7f09004b
@@ -264,7 +264,7 @@ int id editTextMessage 0x7f09003e
 int id editTextSubject 0x7f09003d
 int id editTextTo 0x7f09003c
 int id edit_query 0x7f090030
-int id email 0x7f09004c
+int id email 0x7f09004d
 int id emailVolunteerId 0x7f090045
 int id end 0x7f090017
 int id expand_activities_button 0x7f090026
@@ -278,9 +278,10 @@ int id imgPreview 0x7f090043
 int id linLayout 0x7f090048
 int id listMode 0x7f090006
 int id list_item 0x7f090029
-int id loginActivity 0x7f09004e
+int id loginActivity 0x7f09004f
 int id loginButton 0x7f090047
 int id middle 0x7f090018
+int id mobileNo 0x7f09004c
 int id name 0x7f090049
 int id never 0x7f090012
 int id none 0x7f090019
@@ -291,8 +292,8 @@ int id previewPane 0x7f090042
 int id progress_circular 0x7f090004
 int id progress_horizontal 0x7f090005
 int id radio 0x7f09002f
-int id registerActivity 0x7f09004f
-int id registerButton 0x7f09004d
+int id registerActivity 0x7f090050
+int id registerButton 0x7f09004e
 int id rollNo 0x7f09004a
 int id search_badge 0x7f090032
 int id search_bar 0x7f090031
