@@ -10,17 +10,14 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 
 @SuppressWarnings("deprecation")
-public class HomePage extends ActionBarActivity implements ActionBar.TabListener {
+public class HomePage extends ActionBarActivity implements
+		ActionBar.TabListener {
 
 	private ViewPager viewPager;
 	private TabPagerAdapter tabPagerAdapter;
 	private ActionBar actionBar;
 	// Tab titles
 	private String[] tabs = { "Profile", "Take a Class", "Report a Issue" };
-
-	// TabSpec Names
-	private String tabclasses[] = { "ProfileActivity", "TakeClassActivity",
-			"ReportIssueActivity" };
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +28,7 @@ public class HomePage extends ActionBarActivity implements ActionBar.TabListener
 		tabPagerAdapter = new TabPagerAdapter(getSupportFragmentManager());
 		viewPager.setAdapter(tabPagerAdapter);
 		actionBar = getActionBar();
-		
+
 		// Enable Tabs on Action Bar
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 

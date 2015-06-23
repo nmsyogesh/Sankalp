@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    android:background="#e5a433"
+    android:background="#73CDDF"
     tools:context=".RegistrationActivity" >
 
     <EditText
@@ -51,7 +51,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:background="#84d565"
+        android:background="#064E88"
         android:text="Register" />
 
 </LinearLayout>

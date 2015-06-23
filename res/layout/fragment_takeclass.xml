@@ -1,88 +1,79 @@
- <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="5dp"
-    tools:context=".MainActivity" >
+    android:background="#73CDDF"
+    android:orientation="vertical"
+    android:padding="5dp" >
 
-    <RelativeLayout
+    <Button
+        android:id="@+id/buttonAttachment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:background="#064E88"
+        android:text="attachment" />
+
+    <Button
+        android:id="@+id/btnCapturePicture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:background="#064E88"
+        android:layout_alignParentTop="true"
+        android:text="Take a Picture" />
+
+    <EditText
+        android:id="@+id/editTextTo"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnCapturePicture"
+        android:hint="Email Address!"
+        android:inputType="textEmailAddress"
+        android:singleLine="true" />
+
+    <EditText
+        android:id="@+id/editTextSubject"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/editTextTo"
         android:layout_margin="5dp"
-        android:padding="5dp" >
+        android:hint="Subject"
+        android:singleLine="true" />
 
-        <EditText
-            android:id="@+id/editTextTo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:layout_margin="5dp"
-            android:hint="Email Address!"
-            android:inputType="textEmailAddress"
-            android:singleLine="true" />
+    <EditText
+        android:id="@+id/editTextMessage"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_below="@id/editTextSubject"
+        android:layout_margin="5dp"
+        android:gravity="top|left"
+        android:hint="type message here!"
+        android:inputType="textMultiLine" />
 
-        <EditText
-            android:id="@+id/editTextSubject"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/editTextTo"
-            android:layout_margin="5dp"
-            android:hint="Subject"
-            android:singleLine="true" />
+    <Button
+        android:id="@+id/buttonSend"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_below="@id/editTextMessage"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="5dp"
+        android:background="#064E88"
+        android:text="Send" />
 
-        <EditText
-            android:id="@+id/editTextMessage"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_below="@id/editTextSubject"
-            android:layout_margin="5dp"
-            android:gravity="top|left"
-            android:hint="type message here!"
-            android:inputType="textMultiLine" />
-
-        <Button
-            android:id="@+id/buttonSend"
-            android:layout_width="80dp"
-            android:layout_height="50dp"
-            android:layout_below="@id/editTextMessage"
-            android:layout_margin="5dp"
-            android:text="Send" />
-
-        <Button
-            android:id="@+id/buttonAttachment"
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:text="attachment" />
-        
-        <Button
-            android:id="@+id/btnCapturePicture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Take a Picture"
-            android:layout_marginLeft="30dp"
-            android:layout_marginBottom="10dp"/>
-        
-    <LinearLayout
+    <GridView
         android:id="@+id/previewPane"
-        android:layout_width="100dp"
+        android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:orientation="vertical"
-        android:layout_marginTop="350dp">
- 
-        <!-- To display picture taken -->
-        <ImageView
-            android:id="@+id/imgPreview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone" />
- 
-    </LinearLayout>
-        
-    </RelativeLayout>
-    
-   
+        android:layout_below="@id/buttonSend"
+        android:background="#35ACCE"
+        android:columnWidth="90dp"
+        android:layout_alignParentBottom="true"
+        android:horizontalSpacing="3dp"
+        android:numColumns="4"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="3dp" >
+    </GridView>
 
-</ScrollView>
+</RelativeLayout>

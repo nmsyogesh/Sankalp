@@ -3,7 +3,7 @@
      android:layout_width="match_parent"
      android:layout_height="match_parent"     
      android:gravity="center"
-    android:background="#e5a433"
+    android:background="#73CDDF"
      android:orientation="vertical"
      android:padding="15dp"
      tools:context=".LoginActivity" >
@@ -31,7 +31,7 @@
             android:id="@+id/loginButton"
             android:layout_width="match_parent"
             android:layout_gravity="center_horizontal"
-            android:background="#55a453"
+            android:background="#064E88"
             android:layout_marginTop="10dp"
             android:layout_height="wrap_content"
             android:text="LOGIN!!" />

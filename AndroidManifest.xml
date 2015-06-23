@@ -41,12 +41,7 @@
             android:name="org.sankalpnitjamshedpur.RegistrationActivity"
             android:label="@string/app_name" >
         </activity>
-        
-        <activity
-            android:name="org.sankalpnitjamshedpur.MainActivity"
-            android:label="@string/app_name" >
-        </activity>
-        
+                
         <activity
             android:name="org.sankalpnitjamshedpur.HomePage"
             android:label="@string/app_name" >
