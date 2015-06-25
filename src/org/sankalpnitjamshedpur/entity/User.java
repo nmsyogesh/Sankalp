@@ -2,9 +2,10 @@ package org.sankalpnitjamshedpur.entity;
 
 public class User {
 	private String name;
-	private String rollNo;
+	private int rollNo;
 	private String emailId;
 	private int batch;
+	private String branch;
 	private String password;
 	private long mobileNo;
 	private String volunteerId;	
@@ -17,15 +18,16 @@ public class User {
 		this.volunteerId = volunteerId;
 	}
 
-	public User(String name, String rollNo, String emailId, int batch,
+	public User(String name, int rollNo, String emailId, int batch, String branch,
 			String password, long mobileNo) {
+		this.branch = branch;
 		this.mobileNo = mobileNo;
 		this.name = name;
 		this.rollNo = rollNo;
 		this.emailId = emailId;
 		this.batch = batch;
 		this.password = password;
-		this.volunteerId = String.format("%d%s", batch, rollNo);
+		this.volunteerId = String.format("%d%s%d", batch, branch, rollNo);
 	}
 
 	public String getName() {
@@ -36,11 +38,11 @@ public class User {
 		this.name = name;
 	}
 
-	public String getRollNo() {
+	public int getRollNo() {
 		return rollNo;
 	}
 
-	public void setRollNo(String rollNo) {
+	public void setRollNo(int rollNo) {
 		this.rollNo = rollNo;
 	}
 
@@ -74,6 +76,14 @@ public class User {
 
 	public void setMobileNo(long mobileNo) {
 		this.mobileNo = mobileNo;
+	}
+
+	public String getBranch() {
+		return branch;
+	}
+
+	public void setBranch(String branch) {
+		this.branch = branch;
 	}
 
 }

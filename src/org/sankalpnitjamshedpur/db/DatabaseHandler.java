@@ -26,6 +26,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private static final String KEY_BATCH = "batch";
 	private static final String KEY_MOBILE_NO = "mobile_number";
 	private static final String KEY_EMAIL_ID = "email_id";
+	private static final String KEY_BRANCH = "branch";
 	private static final String KEY_PASSWORD = "password";
 	private static final String KEY_VOLUNTEERID = "volunteer_id";
 
@@ -38,9 +39,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	public void onCreate(SQLiteDatabase db) {
 		String CREATE_CONTACTS_TABLE = "CREATE TABLE " + TABLE_CONTACTS + "("
 				+ KEY_VOLUNTEERID + " TEXT PRIMARY KEY," + KEY_NAME + " TEXT,"
-				+ KEY_ROLLNO + " TEXT," + KEY_BATCH + " INTEGER ,"
-				+ KEY_EMAIL_ID + " TEXT unique," + KEY_PASSWORD + " TEXT,"
-				+ KEY_MOBILE_NO + " INTEGER unique" + ")";
+				+ KEY_ROLLNO + " TEXT," + KEY_BRANCH + " TEXT," + KEY_BATCH
+				+ " INTEGER ," + KEY_EMAIL_ID + " TEXT unique," + KEY_PASSWORD
+				+ " TEXT," + KEY_MOBILE_NO + " INTEGER unique" + ")";
 		db.execSQL(CREATE_CONTACTS_TABLE);
 	}
 
@@ -69,6 +70,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		values.put(KEY_BATCH, user.getBatch());
 		values.put(KEY_VOLUNTEERID, user.getVolunteerId());
 		values.put(KEY_EMAIL_ID, user.getEmailId());
+		values.put(KEY_BRANCH, user.getBranch());
 		values.put(KEY_PASSWORD, user.getPassword());
 
 		// Inserting Row
@@ -81,7 +83,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getReadableDatabase();
 
 		Cursor cursor = db.query(TABLE_CONTACTS, new String[] { KEY_NAME,
-				KEY_ROLLNO, KEY_EMAIL_ID, KEY_BATCH, KEY_PASSWORD,
+				KEY_ROLLNO, KEY_EMAIL_ID, KEY_BATCH, KEY_BRANCH, KEY_PASSWORD,
 				KEY_MOBILE_NO, KEY_VOLUNTEERID }, KEY_VOLUNTEERID + "=?",
 				new String[] { String.valueOf(volunteerId) }, null, null, null,
 				null);
@@ -90,19 +92,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		else
 			return null;
 
-		User contact = new User(cursor.getString(0), cursor.getString(1),
-				cursor.getString(2), Integer.parseInt(cursor.getString(3)),
-				cursor.getString(4), Long.parseLong(cursor.getString(5)));
-		contact.setVolunteerId(cursor.getString(6));
+		User contact = new User(cursor.getString(0), Integer.parseInt(cursor
+				.getString(1)), cursor.getString(2), Integer.parseInt(cursor
+				.getString(3)), cursor.getString(4), cursor.getString(5),
+				Long.parseLong(cursor.getString(6)));
+		contact.setVolunteerId(cursor.getString(7));
 		// return contact
 		return contact;
 	}
-	
+
 	public User getContactByEmailId(String emailId) {
 		SQLiteDatabase db = this.getReadableDatabase();
 
 		Cursor cursor = db.query(TABLE_CONTACTS, new String[] { KEY_NAME,
-				KEY_ROLLNO, KEY_EMAIL_ID, KEY_BATCH, KEY_PASSWORD,
+				KEY_ROLLNO, KEY_EMAIL_ID, KEY_BATCH, KEY_BRANCH, KEY_PASSWORD,
 				KEY_MOBILE_NO, KEY_VOLUNTEERID }, KEY_EMAIL_ID + "=?",
 				new String[] { String.valueOf(emailId) }, null, null, null,
 				null);
@@ -111,19 +114,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		else
 			return null;
 
-		User contact = new User(cursor.getString(0), cursor.getString(1),
-				cursor.getString(2), Integer.parseInt(cursor.getString(3)),
-				cursor.getString(4), Long.parseLong(cursor.getString(5)));
-		contact.setVolunteerId(cursor.getString(6));
+		User contact = new User(cursor.getString(0), Integer.parseInt(cursor
+				.getString(1)), cursor.getString(2), Integer.parseInt(cursor
+				.getString(3)), cursor.getString(4), cursor.getString(5),
+				Long.parseLong(cursor.getString(6)));
+		contact.setVolunteerId(cursor.getString(7));
 		// return contact
 		return contact;
 	}
-	
+
 	public User getContactByMobileNo(long mobileNo) {
 		SQLiteDatabase db = this.getReadableDatabase();
 
 		Cursor cursor = db.query(TABLE_CONTACTS, new String[] { KEY_NAME,
-				KEY_ROLLNO, KEY_EMAIL_ID, KEY_BATCH, KEY_PASSWORD,
+				KEY_ROLLNO, KEY_EMAIL_ID, KEY_BATCH, KEY_BRANCH, KEY_PASSWORD,
 				KEY_MOBILE_NO, KEY_VOLUNTEERID }, KEY_MOBILE_NO + "=?",
 				new String[] { String.valueOf(mobileNo) }, null, null, null,
 				null);
@@ -132,23 +136,24 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		else
 			return null;
 
-		User contact = new User(cursor.getString(0), cursor.getString(1),
-				cursor.getString(2), Integer.parseInt(cursor.getString(3)),
-				cursor.getString(4), Long.parseLong(cursor.getString(5)));
-		contact.setVolunteerId(cursor.getString(6));
+		User contact = new User(cursor.getString(0), Integer.parseInt(cursor
+				.getString(1)), cursor.getString(2), Integer.parseInt(cursor
+				.getString(3)), cursor.getString(4), cursor.getString(5),
+				Long.parseLong(cursor.getString(6)));
+		contact.setVolunteerId(cursor.getString(7));
 		// return contact
 		return contact;
 	}
 
 	public User doesUserExists(User user) {
 		User returnedUser;
-		if((returnedUser = getContactByMobileNo(user.getMobileNo()))!=null)
+		if ((returnedUser = getContactByMobileNo(user.getMobileNo())) != null)
 			return returnedUser;
-		if((returnedUser = getContactByEmailId(user.getEmailId()))!=null)
+		if ((returnedUser = getContactByEmailId(user.getEmailId())) != null)
 			return returnedUser;
-		if((returnedUser = getContactByVolunteerId(user.getVolunteerId()))!=null)
+		if ((returnedUser = getContactByVolunteerId(user.getVolunteerId())) != null)
 			return returnedUser;
-		
+
 		return null;
 	}
 

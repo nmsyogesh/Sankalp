@@ -2,8 +2,36 @@
 <resources>
 
     <string name="app_name" translatable="false">apppp</string>
-    
     <string name="hello_world" translatable="false">Hello world!</string>
     <string name="action_settings" translatable="false">Settings</string>
+
+    <string-array name="branch_array">
+        <item>EC</item>
+        <item>CS</item>
+        <item>EL</item>
+        <item>ME</item>
+        <item>MT</item>
+        <item>CE</item>
+        <item>PR</item>  
+        <item>MCA</item>
+    </string-array>
+    
+    <string-array name="login_options">
+        <item>Volunteer Id</item>
+        <item>Email Id</item>
+        <item>Mobile No</item>
+    </string-array>
+    
+    <string-array name="batch_array">
+        <item>2012</item>
+        <item>2013</item>  
+        <item>2014</item>
+        <item>2015</item>
+        <item>2016</item>
+        <item>2017</item>
+        <item>2018</item>
+        <item>2019</item>
+        <item>2020</item>
+    </string-array>
 
 </resources>
