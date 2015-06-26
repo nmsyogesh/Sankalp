@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:background="#064E88"
+        android:background="#00CCCC"
         android:text="attachment" />
 
     <Button
@@ -20,7 +20,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:background="#064E88"
+        android:background="#00CCCC"
         android:layout_alignParentTop="true"
         android:text="Take a Picture" />
 
@@ -59,7 +59,7 @@
         android:layout_below="@id/editTextMessage"
         android:layout_centerHorizontal="true"
         android:layout_margin="5dp"
-        android:background="#064E88"
+        android:background="#00CCCC"
         android:text="Send" />
 
     <GridView

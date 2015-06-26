@@ -21,10 +21,18 @@ import org.sankalpnitjamshedpur.db.HttpRequestHandler;
 import org.sankalpnitjamshedpur.db.RegistrationStage;
 import org.sankalpnitjamshedpur.db.RemoteDatabaseConfiguration;
 import org.sankalpnitjamshedpur.entity.User;
+import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
+import org.sankalpnitjamshedpur.helper.ValidationException;
+import org.sankalpnitjamshedpur.helper.Validator;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -37,13 +45,13 @@ import android.widget.Toast;
 
 public class RegistrationActivity extends Activity implements OnClickListener,
 		UserAuthenticationActivity {
-	Button loginButton;
 	Button registerButton;
 	EditText nameBox, rollNoBox, emailBox, passwordBox, mobileNoBox;
 	Spinner batchSpinner, branchSpinner;
-	String batch = "", branch = "";
+	String batch = "2012", branch = "EC";
 	DatabaseHandler dbHandler;
 	User registeredUser;
+	boolean error = false;
 
 	User userToBeRegistered;
 
@@ -64,6 +72,12 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 		passwordBox = (EditText) findViewById(R.id.password);
 		mobileNoBox = (EditText) findViewById(R.id.mobileNo);
 		registerButton.setOnClickListener(this);
+
+		initiateListeners();
+
+	}
+
+	private void initiateListeners() {
 
 		ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter
 				.createFromResource(this, R.array.branch_array,
@@ -88,7 +102,6 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 
 			@Override
 			public void onNothingSelected(AdapterView<?> parent) {
-				// TODO Auto-generated method stub
 			}
 		});
 
@@ -101,7 +114,144 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 
 			@Override
 			public void onNothingSelected(AdapterView<?> parent) {
-				// TODO Auto-generated method stub
+			}
+		});
+
+		nameBox.addTextChangedListener(new TextWatcher() {
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+				nameBox.setError(null);
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+				nameBox.setError(null);
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+				nameBox.setError(null);
+
+				if (nameBox.getText().toString().trim().equalsIgnoreCase("")) {
+					nameBox.setError("name can not be blank");
+					error = true;
+				} else {
+					error = false;
+				}
+			}
+
+		});
+
+		rollNoBox.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+				rollNoBox.setError(null);
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+				rollNoBox.setError(null);
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+
+				rollNoBox.setError(null);
+				try {
+					Validator.validateRollNo(rollNoBox.getText().toString());
+					error = false;
+				} catch (ValidationException e) {
+					error = true;
+					rollNoBox.setError(e.getMessage());
+				}
+			}
+		});
+
+		emailBox.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+				emailBox.setError(null);
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+				emailBox.setError(null);
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+
+				emailBox.setError(null);
+				try {
+					Validator.validateEmail(emailBox.getText().toString());
+					error = false;
+				} catch (ValidationException e) {
+					error = true;
+					emailBox.setError(e.getMessage());
+				}
+			}
+		});
+
+		passwordBox.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+				passwordBox.setError(null);
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+				passwordBox.setError(null);
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+
+				passwordBox.setError(null);
+				try {
+					Validator
+							.validatePassword(passwordBox.getText().toString());
+					error = false;
+				} catch (ValidationException e) {
+					error = true;
+					passwordBox.setError(e.getMessage());
+				}
+			}
+		});
+
+		mobileNoBox.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+				mobileNoBox.setError(null);
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+				mobileNoBox.setError(null);
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+
+				mobileNoBox.setError(null);
+				try {
+					Validator
+							.validateMobileNo(mobileNoBox.getText().toString());
+					error = false;
+				} catch (ValidationException e) {
+					error = true;
+					mobileNoBox.setError(e.getMessage());
+				}
 			}
 		});
 	}
@@ -109,6 +259,12 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 	@Override
 	public void onClick(View v) {
 		if (v == registerButton) {
+			checkfields();
+			if(error) {
+				Toast.makeText(getApplicationContext(),
+						"Please correct your registration details", Toast.LENGTH_SHORT).show();
+				return;
+			}
 			emailExists = true;
 			mobileNoExists = true;
 			volunteerIdExists = true;
@@ -122,11 +278,19 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 		}
 	}
 
+	private void checkfields() {
+		// Setting text boxes with their values so that their onTextChanged Method is triggered		
+		nameBox.setText(nameBox.getText().toString());
+		rollNoBox.setText(rollNoBox.getText().toString());
+		emailBox.setText(emailBox.getText().toString());
+		passwordBox.setText(passwordBox.getText().toString());
+		mobileNoBox.setText(mobileNoBox.getText().toString());
+	}
+
 	private User captureUser() {
-		// TODO Auto-generated method stub
 		return new User(nameBox.getText().toString(),
 				Integer.parseInt(rollNoBox.getText().toString()), emailBox
-						.getText().toString(), Integer.parseInt(batch), branch,
+						.getText().toString().toLowerCase(), Integer.parseInt(batch), branch,
 				passwordBox.getText().toString(), Long.parseLong(mobileNoBox
 						.getText().toString()));
 	}
@@ -194,7 +358,11 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 
 	public void onRequestResult(HttpResponse httpResponse,
 			RegistrationStage registrationStage) {
-
+		if(httpResponse == null) {
+			Toast.makeText(getApplicationContext(),
+					"Registration failed. Please check Internet connectivity.", Toast.LENGTH_LONG).show();	
+			return;
+		}
 		StringBuffer result = new StringBuffer();
 		BufferedReader rd;
 		try {
@@ -208,16 +376,15 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 
 			JSONObject mainJsonObj = new JSONObject(result.toString());
 			if (registrationStage == RegistrationStage.UNREGISTERED) {
-				
+
 				if (mainJsonObj.get("status").equals("SUCCESS")) {
 					registerUser(mainJsonObj);
 					Toast.makeText(getApplicationContext(),
 							"Yippppiieeee!!!!!", Toast.LENGTH_LONG).show();
 					startHomePageActivityWithUser();
 				}
-			} 
-			else if (registrationStage == RegistrationStage.EMAIL) {
-				
+			} else if (registrationStage == RegistrationStage.EMAIL) {
+
 				if (mainJsonObj.length() == 0) {
 					emailExists = false;
 					if (!checkUserRegistrationFinalStatusAndRegister()) {
@@ -231,12 +398,12 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 					}
 				} else {
 					Toast.makeText(getApplicationContext(),
-							"Email Exists. Login with that", Toast.LENGTH_SHORT).show();
+							"Email Exists. Login with that", Toast.LENGTH_SHORT)
+							.show();
 					// Fire Login Activity with email Id
 				}
-			} 
-			else if (registrationStage == RegistrationStage.MOBILENO) {
-				
+			} else if (registrationStage == RegistrationStage.MOBILENO) {
+
 				if (mainJsonObj.length() == 0) {
 					mobileNoExists = false;
 					if (!checkUserRegistrationFinalStatusAndRegister()) {
@@ -251,15 +418,15 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 					Toast.makeText(getApplicationContext(),
 							"Mobile number Exists", Toast.LENGTH_SHORT).show();
 				}
-			} 
-			else if (registrationStage == RegistrationStage.VOLUNTEERID) {
+			} else if (registrationStage == RegistrationStage.VOLUNTEERID) {
 				if (mainJsonObj.length() == 0) {
 					volunteerIdExists = false;
 					checkUserRegistrationFinalStatusAndRegister();
 				} else {
 					// Fire Login Activity with email Id
 					Toast.makeText(getApplicationContext(),
-							"VolunteerId exists!!!!!", Toast.LENGTH_SHORT).show();
+							"VolunteerId exists!!!!!", Toast.LENGTH_SHORT)
+							.show();
 				}
 			}
 
@@ -289,6 +456,7 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 			Intent homePageActivityIntent = new Intent(this,
 					Class.forName("org.sankalpnitjamshedpur.HomePage"));
 			// Pass this registered user in sharedPrefernces for further usage
+			setPrefernces();
 			startActivity(homePageActivityIntent);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -309,5 +477,34 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
+	}
+
+	void setPrefernces() {
+		SharedPreferences settings;
+		Editor editor;
+		settings = getApplicationContext().getSharedPreferences(
+				SharedPreferencesKey.PREFS_NAME, Context.MODE_PRIVATE);
+		editor = settings.edit();
+
+		editor.putString(SharedPreferencesKey.KEY_NAME,
+				registeredUser.getName());
+		editor.putString(SharedPreferencesKey.KEY_BATCH,
+				String.valueOf(registeredUser.getBatch()));
+		editor.putString(SharedPreferencesKey.KEY_BRANCH,
+				registeredUser.getBranch());
+		editor.putString(SharedPreferencesKey.KEY_EMAIL_ID,
+				registeredUser.getEmailId());
+		editor.putString(SharedPreferencesKey.KEY_ROLLNO,
+				String.valueOf(registeredUser.getRollNo()));
+		editor.putString(SharedPreferencesKey.KEY_MOBILE_NO,
+				String.valueOf(registeredUser.getMobileNo()));
+		editor.putString(SharedPreferencesKey.KEY_VOLUNTEERID,
+				registeredUser.getVolunteerId());
+
+		editor.commit();
+	}	
+
+	public Context getApplicationContext(){
+		return this;
 	}
 }

@@ -9,6 +9,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#00CCCC"
+        android:layout_margin="5dp"
         android:orientation="horizontal" >
 
         <TextView
@@ -17,7 +19,7 @@
             android:gravity="left"
             android:padding="10dp"
             android:text="Name"
-            android:textSize="20sp" />
+            android:textSize="15sp" />
 
         <TextView
             android:id="@+id/Name"
@@ -25,12 +27,14 @@
             android:layout_height="wrap_content"
             android:gravity="left"
             android:padding="10dp"
-            android:textSize="20sp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#00CCCC"
+        android:layout_margin="5dp"
         android:orientation="horizontal" >
 
         <TextView
@@ -39,7 +43,7 @@
             android:gravity="left"
             android:padding="10dp"
             android:text="Branch"
-            android:textSize="20dp" />
+            android:textSize="15dp" />
 
         <TextView
             android:id="@+id/Branch"
@@ -47,12 +51,14 @@
             android:layout_height="wrap_content"
             android:gravity="left"
             android:padding="10dp"
-            android:textSize="20sp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#00CCCC"
+        android:layout_margin="5dp"
         android:orientation="horizontal" >
 
         <TextView
@@ -61,7 +67,7 @@
             android:gravity="left"
             android:padding="10dp"
             android:text="Email"
-            android:textSize="20dp" />
+            android:textSize="15dp" />
 
         <TextView
             android:id="@+id/EmailId"
@@ -69,12 +75,14 @@
             android:layout_height="wrap_content"
             android:gravity="left"
             android:padding="10dp"
-            android:textSize="20sp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#00CCCC"
+        android:layout_margin="5dp"
         android:orientation="horizontal" >
 
         <TextView
@@ -83,7 +91,7 @@
             android:gravity="left"
             android:padding="10dp"
             android:text="Contact No"
-            android:textSize="20dp" />
+            android:textSize="15dp" />
 
         <TextView
             android:id="@+id/MobileNo"
@@ -91,12 +99,14 @@
             android:layout_height="wrap_content"
             android:gravity="left"
             android:padding="10dp"
-            android:textSize="20sp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#00CCCC"
+        android:layout_margin="5dp"
         android:orientation="horizontal" >
 
         <TextView
@@ -105,7 +115,7 @@
             android:gravity="left"
             android:padding="10dp"
             android:text="Batch"
-            android:textSize="20dp" />
+            android:textSize="15dp" />
 
         <TextView
             android:id="@+id/Batch"
@@ -113,12 +123,14 @@
             android:layout_height="wrap_content"
             android:gravity="left"
             android:padding="10dp"
-            android:textSize="20sp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#00CCCC"
+        android:layout_margin="5dp"
         android:orientation="horizontal" >
 
         <TextView
@@ -127,7 +139,7 @@
             android:gravity="left"
             android:padding="10dp"
             android:text="Roll No"
-            android:textSize="20dp" />
+            android:textSize="15dp" />
 
         <TextView
             android:id="@+id/RollNo"
@@ -135,12 +147,14 @@
             android:layout_height="wrap_content"
             android:gravity="left"
             android:padding="10dp"
-            android:textSize="20sp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#00CCCC"
+        android:layout_margin="5dp"
         android:orientation="horizontal" >
 
         <TextView
@@ -149,7 +163,7 @@
             android:gravity="left"
             android:padding="10dp"
             android:text="Volunteer ID"
-            android:textSize="20dp" />
+            android:textSize="15dp" />
 
         <TextView
             android:id="@+id/VolunteerId"
@@ -157,7 +171,7 @@
             android:layout_height="wrap_content"
             android:gravity="left"
             android:padding="10dp"
-            android:textSize="20sp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
 </LinearLayout>

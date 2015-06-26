@@ -20,11 +20,11 @@ public class User {
 
 	public User(String name, int rollNo, String emailId, int batch, String branch,
 			String password, long mobileNo) {
-		this.branch = branch;
+		this.branch = branch.toUpperCase();
 		this.mobileNo = mobileNo;
 		this.name = name;
 		this.rollNo = rollNo;
-		this.emailId = emailId;
+		this.emailId = emailId.toLowerCase();
 		this.batch = batch;
 		this.password = password;
 		this.volunteerId = String.format("%d%s%d", batch, branch, rollNo);

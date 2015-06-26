@@ -10,11 +10,13 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.sankalpnitjamshedpur.db.DatabaseHandler;
 import org.sankalpnitjamshedpur.db.HttpRequestHandler;
 import org.sankalpnitjamshedpur.db.RegistrationStage;
 import org.sankalpnitjamshedpur.db.RemoteDatabaseConfiguration;
 import org.sankalpnitjamshedpur.entity.User;
+import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
+import org.sankalpnitjamshedpur.helper.ValidationException;
+import org.sankalpnitjamshedpur.helper.Validator;
 
 import android.app.Activity;
 import android.content.Context;
@@ -22,6 +24,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -30,28 +34,31 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class LoginActivity extends Activity implements OnClickListener,
 		UserAuthenticationActivity {
 	Button loginButton;
 	EditText inputParam, password;
-	DatabaseHandler dbHandler;
 	Spinner loginOptionSpinner;
-	String option;
+	String option = "";
 	String passwordText;
 	User loggedInUser;
+	boolean error = false;
+	TextView volunteerIdHelp;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.login_page);
-		dbHandler = new DatabaseHandler(this);
 		inputParam = (EditText) findViewById(R.id.inputParam);
 		password = (EditText) findViewById(R.id.password);
 		loginButton = (Button) findViewById(R.id.loginButton);
 		loginOptionSpinner = (Spinner) findViewById(R.id.login_option);
+		volunteerIdHelp= (TextView) findViewById(R.id.volunteerIdHelp);
 		loginButton.setOnClickListener(this);
+		initiateErrorListeners();
 
 		ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter
 				.createFromResource(this, R.array.login_options,
@@ -59,6 +66,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 		staticAdapter
 				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		loginOptionSpinner.setAdapter(staticAdapter);
+		password.setText("");
 
 		loginOptionSpinner
 				.setOnItemSelectedListener(new OnItemSelectedListener() {
@@ -66,6 +74,17 @@ public class LoginActivity extends Activity implements OnClickListener,
 					public void onItemSelected(AdapterView<?> parent,
 							View view, int position, long id) {
 						option = (String) parent.getItemAtPosition(position);
+						inputParam.setText("");
+						if (option.equalsIgnoreCase("Volunteer Id")) {
+							volunteerIdHelp.setVisibility(View.VISIBLE);
+							inputParam.setHint("Enter your Volunteer Id");
+						} else if (option.equalsIgnoreCase("Email Id")) {
+							volunteerIdHelp.setVisibility(View.GONE);
+							inputParam.setHint("Enter your Email Id");
+						} else if (option.equalsIgnoreCase("Mobile No")) {
+							volunteerIdHelp.setVisibility(View.GONE);
+							inputParam.setHint("Enter your Mobile No");
+						}
 					}
 
 					@Override
@@ -75,20 +94,97 @@ public class LoginActivity extends Activity implements OnClickListener,
 				});
 	}
 
+	private void initiateErrorListeners() {
+
+		inputParam.addTextChangedListener(new TextWatcher() {
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+				// TODO Auto-generated method stub
+				inputParam.setError(null);
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+				// TODO Auto-generated method stub
+				inputParam.setError(null);
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+				// TODO Auto-generated method stub
+				inputParam.setError(null);
+
+				try {
+					if (option.equalsIgnoreCase("Email Id")) {
+						Validator
+								.validateEmail(inputParam.getText().toString());
+					} else if (option.equalsIgnoreCase("Volunteer Id")) {
+						Validator.validateVolunteerId(inputParam.getText()
+								.toString());
+					} else if (option.equalsIgnoreCase("Mobile No")) {
+						Validator.validateMobileNo(inputParam.getText()
+								.toString());
+					}
+					error = false;
+				} catch (ValidationException e) {
+					error = true;
+					inputParam.setError(e.getMessage());
+				}
+			}
+
+		});
+
+		password.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+				password.setError(null);
+			}
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+				password.setError(null);
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+				password.setError(null);
+				try {
+					Validator.validatePassword(password.getText().toString());
+					error = false;
+				} catch (ValidationException e) {
+					error = true;
+					password.setError(e.getMessage());
+				}
+			}
+		});
+	}
+
 	@Override
 	public void onClick(View v) {
 		if (v == loginButton) {
+			checkfields();
+			if (error) {
+				Toast.makeText(getApplicationContext(),
+						"Please Correct Login Details", Toast.LENGTH_SHORT)
+						.show();
+				return;
+			}
 			String inputString = inputParam.getText().toString();
 			passwordText = password.getText().toString();
 			HttpRequestHandler requestHandler = new HttpRequestHandler(this,
 					RegistrationStage.LOGIN);
 			if (option.equalsIgnoreCase("Volunteer Id")) {
 				requestHandler.execute(getHttpRegistrationGetRequest(
-						inputString,
+						inputString.toUpperCase(),
 						RemoteDatabaseConfiguration.KEY_VOLUNTEERID));
 			} else if (option.equalsIgnoreCase("Email Id")) {
 				requestHandler.execute(getHttpRegistrationGetRequest(
-						inputString, RemoteDatabaseConfiguration.KEY_EMAIL_ID));
+						inputString.toLowerCase(), RemoteDatabaseConfiguration.KEY_EMAIL_ID));
 			} else if (option.equalsIgnoreCase("Mobile No")) {
 				requestHandler
 						.execute(getHttpRegistrationGetRequest(inputString,
@@ -98,6 +194,12 @@ public class LoginActivity extends Activity implements OnClickListener,
 			Toast.makeText(getApplicationContext(), "Login Request created",
 					Toast.LENGTH_SHORT).show();
 		}
+	}
+	
+	private void checkfields() {
+		// Setting text boxes with their values so that their onTextChanged Method is triggered		
+		inputParam.setText(inputParam.getText().toString());
+		password.setText(password.getText().toString());
 	}
 
 	private HttpUriRequest getHttpRegistrationGetRequest(String value,
@@ -116,6 +218,11 @@ public class LoginActivity extends Activity implements OnClickListener,
 	@Override
 	public void onRequestResult(HttpResponse httpResponse,
 			RegistrationStage registrationStage) {
+		if(httpResponse == null) {
+			Toast.makeText(getApplicationContext(),
+					"Login failed. Please check Internet connectivity.", Toast.LENGTH_LONG).show();	
+			return;
+		}
 		if (RegistrationStage.LOGIN == registrationStage) {
 			StringBuffer result = new StringBuffer();
 			BufferedReader rd;
@@ -200,17 +307,27 @@ public class LoginActivity extends Activity implements OnClickListener,
 		SharedPreferences settings;
 		Editor editor;
 		settings = getApplicationContext().getSharedPreferences(
-				SharedPreferencesKey.PREFS_NAME, Context.MODE_PRIVATE); 
+				SharedPreferencesKey.PREFS_NAME, Context.MODE_PRIVATE);
 		editor = settings.edit();
 
-		editor.putString(SharedPreferencesKey.KEY_NAME, loggedInUser.getName()); 
-		editor.putString(SharedPreferencesKey.KEY_BATCH, loggedInUser.getName());
-		editor.putString(SharedPreferencesKey.KEY_BRANCH, loggedInUser.getName());
-		editor.putString(SharedPreferencesKey.KEY_EMAIL_ID, loggedInUser.getName());
-		editor.putString(SharedPreferencesKey.KEY_ROLLNO, loggedInUser.getName());
-		editor.putString(SharedPreferencesKey.KEY_MOBILE_NO, loggedInUser.getName());
-		editor.putString(SharedPreferencesKey.KEY_VOLUNTEERID, loggedInUser.getVolunteerId());
-		
-		editor.commit(); 
+		editor.putString(SharedPreferencesKey.KEY_NAME, loggedInUser.getName());
+		editor.putString(SharedPreferencesKey.KEY_BATCH,
+				String.valueOf(loggedInUser.getBatch()));
+		editor.putString(SharedPreferencesKey.KEY_BRANCH,
+				loggedInUser.getBranch());
+		editor.putString(SharedPreferencesKey.KEY_EMAIL_ID,
+				loggedInUser.getEmailId());
+		editor.putString(SharedPreferencesKey.KEY_ROLLNO,
+				String.valueOf(loggedInUser.getRollNo()));
+		editor.putString(SharedPreferencesKey.KEY_MOBILE_NO,
+				String.valueOf(loggedInUser.getMobileNo()));
+		editor.putString(SharedPreferencesKey.KEY_VOLUNTEERID,
+				loggedInUser.getVolunteerId());
+
+		editor.commit();
+	}
+	
+	public Context getApplicationContext(){
+		return this;
 	}
 }

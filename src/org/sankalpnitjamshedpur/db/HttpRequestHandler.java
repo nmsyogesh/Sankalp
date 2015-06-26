@@ -11,13 +11,15 @@ import org.sankalpnitjamshedpur.UserAuthenticationActivity;
 
 import android.os.AsyncTask;
 
-public class HttpRequestHandler extends AsyncTask<HttpUriRequest, String, HttpResponse>  {
+public class HttpRequestHandler extends
+		AsyncTask<HttpUriRequest, String, HttpResponse> {
 
 	UserAuthenticationActivity userAuthenticationActivity;
 	RegistrationStage registrationStage;
-	
+
 	public HttpRequestHandler(
-			UserAuthenticationActivity userAuthenticationActivity, RegistrationStage registrationStage) {
+			UserAuthenticationActivity userAuthenticationActivity,
+			RegistrationStage registrationStage) {
 		super();
 		this.registrationStage = registrationStage;
 		this.userAuthenticationActivity = userAuthenticationActivity;
@@ -27,20 +29,19 @@ public class HttpRequestHandler extends AsyncTask<HttpUriRequest, String, HttpRe
 	protected HttpResponse doInBackground(HttpUriRequest... httprequests) {
 		HttpUriRequest httpRequest = httprequests[0];
 		HttpClient client = new DefaultHttpClient();
-		
+
 		try {
 			HttpResponse response = client.execute(httpRequest);
-			return response;
+			if (response.getEntity() != null)
+				return response;
 		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
 	}
-	
+
 	protected void onPostExecute(HttpResponse response) {
 		userAuthenticationActivity.onRequestResult(response, registrationStage);
 	}

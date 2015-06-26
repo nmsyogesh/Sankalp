@@ -1,7 +1,7 @@
 package org.sankalpnitjamshedpur.tabs;
 
 import org.sankalpnitjamshedpur.R;
-import org.sankalpnitjamshedpur.SharedPreferencesKey;
+import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
 
 import android.content.Context;
 import android.content.SharedPreferences;
