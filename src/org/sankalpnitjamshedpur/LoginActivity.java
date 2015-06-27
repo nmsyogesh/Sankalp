@@ -19,6 +19,7 @@ import org.sankalpnitjamshedpur.helper.ValidationException;
 import org.sankalpnitjamshedpur.helper.Validator;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -47,6 +48,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 	User loggedInUser;
 	boolean error = false;
 	TextView volunteerIdHelp;
+	ProgressDialog progressDialog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -100,17 +102,11 @@ public class LoginActivity extends Activity implements OnClickListener,
 
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				// TODO Auto-generated method stub
-				inputParam.setError(null);
-			}
+					int count) {}
 
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {
-				// TODO Auto-generated method stub
-				inputParam.setError(null);
-			}
+					int after) {}
 
 			@Override
 			public void afterTextChanged(Editable s) {
@@ -140,15 +136,11 @@ public class LoginActivity extends Activity implements OnClickListener,
 		password.addTextChangedListener(new TextWatcher() {
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {
-				password.setError(null);
-			}
+					int after) {}
 
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				password.setError(null);
-			}
+					int count) {}
 
 			@Override
 			public void afterTextChanged(Editable s) {
@@ -190,9 +182,8 @@ public class LoginActivity extends Activity implements OnClickListener,
 						.execute(getHttpRegistrationGetRequest(inputString,
 								RemoteDatabaseConfiguration.KEY_MOBILE_NO));
 			}
-
-			Toast.makeText(getApplicationContext(), "Login Request created",
-					Toast.LENGTH_SHORT).show();
+			progressDialog = ProgressDialog.show(this, "Please Wait", "We are logging you in!!");
+			progressDialog.setCancelable(true);
 		}
 	}
 	
@@ -218,6 +209,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 	@Override
 	public void onRequestResult(HttpResponse httpResponse,
 			RegistrationStage registrationStage) {
+		progressDialog.dismiss();
 		if(httpResponse == null) {
 			Toast.makeText(getApplicationContext(),
 					"Login failed. Please check Internet connectivity.", Toast.LENGTH_LONG).show();	

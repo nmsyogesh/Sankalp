@@ -3,8 +3,6 @@ package org.sankalpnitjamshedpur.tabs;
 import org.sankalpnitjamshedpur.R;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -20,31 +18,40 @@ public class ProfileFragment extends Fragment {
 		View android = inflater.inflate(R.layout.fragment_profile, container,
 				false);
 
-		
-		SharedPreferences sf;
-		sf = getActivity().getApplicationContext().getSharedPreferences(
-				SharedPreferencesKey.PREFS_NAME, Context.MODE_PRIVATE); // 1
+		((TextView) android.findViewById(R.id.Name))
+				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
+						SharedPreferencesKey.KEY_NAME, null, getActivity()
+								.getApplicationContext()));
 
-		((TextView) android.findViewById(R.id.Name)).setText(sf
-				.getString(SharedPreferencesKey.KEY_NAME, null));
-		
-		((TextView) android.findViewById(R.id.RollNo)).setText(sf
-				.getString(SharedPreferencesKey.KEY_ROLLNO, null));
-		
-		((TextView) android.findViewById(R.id.Batch)).setText(sf
-				.getString(SharedPreferencesKey.KEY_BATCH, null));
-		
-		((TextView) android.findViewById(R.id.Branch)).setText(sf
-				.getString(SharedPreferencesKey.KEY_BRANCH, null));
-		
-		((TextView) android.findViewById(R.id.EmailId)).setText(sf
-				.getString(SharedPreferencesKey.KEY_EMAIL_ID, null));
-		
-		((TextView) android.findViewById(R.id.MobileNo)).setText(sf
-				.getString(SharedPreferencesKey.KEY_MOBILE_NO, null));
-		
-		((TextView) android.findViewById(R.id.VolunteerId)).setText(sf
-				.getString(SharedPreferencesKey.KEY_VOLUNTEERID, null));
+		((TextView) android.findViewById(R.id.RollNo))
+				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
+						SharedPreferencesKey.KEY_ROLLNO, null, getActivity()
+								.getApplicationContext()));
+
+		((TextView) android.findViewById(R.id.Batch))
+				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
+						SharedPreferencesKey.KEY_BATCH, null, getActivity()
+								.getApplicationContext()));
+
+		((TextView) android.findViewById(R.id.Branch))
+				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
+						SharedPreferencesKey.KEY_BRANCH, null, getActivity()
+								.getApplicationContext()));
+
+		((TextView) android.findViewById(R.id.EmailId))
+				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
+						SharedPreferencesKey.KEY_EMAIL_ID, null, getActivity()
+								.getApplicationContext()));
+
+		((TextView) android.findViewById(R.id.MobileNo))
+				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
+						SharedPreferencesKey.KEY_MOBILE_NO, null, getActivity()
+								.getApplicationContext()));
+
+		((TextView) android.findViewById(R.id.VolunteerId))
+				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
+						SharedPreferencesKey.KEY_VOLUNTEERID, null,
+						getActivity().getApplicationContext()));
 
 		return android;
 	}

@@ -26,10 +26,9 @@ import org.sankalpnitjamshedpur.helper.ValidationException;
 import org.sankalpnitjamshedpur.helper.Validator;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -51,6 +50,7 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 	String batch = "2012", branch = "EC";
 	DatabaseHandler dbHandler;
 	User registeredUser;
+	ProgressDialog progressDialog;
 	boolean error = false;
 
 	User userToBeRegistered;
@@ -117,152 +117,21 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 			}
 		});
 
-		nameBox.addTextChangedListener(new TextWatcher() {
-
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				nameBox.setError(null);
-			}
-
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {
-				nameBox.setError(null);
-			}
-
-			@Override
-			public void afterTextChanged(Editable s) {
-				nameBox.setError(null);
-
-				if (nameBox.getText().toString().trim().equalsIgnoreCase("")) {
-					nameBox.setError("name can not be blank");
-					error = true;
-				} else {
-					error = false;
-				}
-			}
-
-		});
-
-		rollNoBox.addTextChangedListener(new TextWatcher() {
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				rollNoBox.setError(null);
-			}
-
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {
-				rollNoBox.setError(null);
-			}
-
-			@Override
-			public void afterTextChanged(Editable s) {
-
-				rollNoBox.setError(null);
-				try {
-					Validator.validateRollNo(rollNoBox.getText().toString());
-					error = false;
-				} catch (ValidationException e) {
-					error = true;
-					rollNoBox.setError(e.getMessage());
-				}
-			}
-		});
-
-		emailBox.addTextChangedListener(new TextWatcher() {
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				emailBox.setError(null);
-			}
-
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {
-				emailBox.setError(null);
-			}
-
-			@Override
-			public void afterTextChanged(Editable s) {
-
-				emailBox.setError(null);
-				try {
-					Validator.validateEmail(emailBox.getText().toString());
-					error = false;
-				} catch (ValidationException e) {
-					error = true;
-					emailBox.setError(e.getMessage());
-				}
-			}
-		});
-
-		passwordBox.addTextChangedListener(new TextWatcher() {
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				passwordBox.setError(null);
-			}
-
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {
-				passwordBox.setError(null);
-			}
-
-			@Override
-			public void afterTextChanged(Editable s) {
-
-				passwordBox.setError(null);
-				try {
-					Validator
-							.validatePassword(passwordBox.getText().toString());
-					error = false;
-				} catch (ValidationException e) {
-					error = true;
-					passwordBox.setError(e.getMessage());
-				}
-			}
-		});
-
-		mobileNoBox.addTextChangedListener(new TextWatcher() {
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-				mobileNoBox.setError(null);
-			}
-
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {
-				mobileNoBox.setError(null);
-			}
-
-			@Override
-			public void afterTextChanged(Editable s) {
-
-				mobileNoBox.setError(null);
-				try {
-					Validator
-							.validateMobileNo(mobileNoBox.getText().toString());
-					error = false;
-				} catch (ValidationException e) {
-					error = true;
-					mobileNoBox.setError(e.getMessage());
-				}
-			}
-		});
+		nameBox.addTextChangedListener(new CustomTextWatcher(nameBox));
+		rollNoBox.addTextChangedListener(new CustomTextWatcher(rollNoBox));
+		passwordBox.addTextChangedListener(new CustomTextWatcher(passwordBox));
+		mobileNoBox.addTextChangedListener(new CustomTextWatcher(mobileNoBox));
+		emailBox.addTextChangedListener(new CustomTextWatcher(emailBox));
 	}
 
 	@Override
 	public void onClick(View v) {
 		if (v == registerButton) {
 			checkfields();
-			if(error) {
+			if (error) {
 				Toast.makeText(getApplicationContext(),
-						"Please correct your registration details", Toast.LENGTH_SHORT).show();
+						"Please correct your registration details",
+						Toast.LENGTH_SHORT).show();
 				return;
 			}
 			emailExists = true;
@@ -275,11 +144,14 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 			requestHandler.execute(getHttpRegistrationGetRequest(
 					userToBeRegistered.getEmailId(),
 					RemoteDatabaseConfiguration.KEY_EMAIL_ID));
+			
+			progressDialog = ProgressDialog.show(this, "Please Wait", "We are registering you!!");
 		}
 	}
 
 	private void checkfields() {
-		// Setting text boxes with their values so that their onTextChanged Method is triggered		
+		// Setting text boxes with their values so that their onTextChanged
+		// Method is triggered
 		nameBox.setText(nameBox.getText().toString());
 		rollNoBox.setText(rollNoBox.getText().toString());
 		emailBox.setText(emailBox.getText().toString());
@@ -290,9 +162,10 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 	private User captureUser() {
 		return new User(nameBox.getText().toString(),
 				Integer.parseInt(rollNoBox.getText().toString()), emailBox
-						.getText().toString().toLowerCase(), Integer.parseInt(batch), branch,
-				passwordBox.getText().toString(), Long.parseLong(mobileNoBox
-						.getText().toString()));
+						.getText().toString().toLowerCase(),
+				Integer.parseInt(batch), branch, passwordBox.getText()
+						.toString(), Long.parseLong(mobileNoBox.getText()
+						.toString()));
 	}
 
 	private HttpUriRequest getHttpRegistrationPostRequest(
@@ -358,9 +231,11 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 
 	public void onRequestResult(HttpResponse httpResponse,
 			RegistrationStage registrationStage) {
-		if(httpResponse == null) {
+		if (httpResponse == null) {
+			progressDialog.dismiss();
 			Toast.makeText(getApplicationContext(),
-					"Registration failed. Please check Internet connectivity.", Toast.LENGTH_LONG).show();	
+					"Registration failed. Please check Internet connectivity.",
+					Toast.LENGTH_LONG).show();
 			return;
 		}
 		StringBuffer result = new StringBuffer();
@@ -379,12 +254,12 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 
 				if (mainJsonObj.get("status").equals("SUCCESS")) {
 					registerUser(mainJsonObj);
+					progressDialog.dismiss();
 					Toast.makeText(getApplicationContext(),
 							"Yippppiieeee!!!!!", Toast.LENGTH_LONG).show();
 					startHomePageActivityWithUser();
 				}
 			} else if (registrationStage == RegistrationStage.EMAIL) {
-
 				if (mainJsonObj.length() == 0) {
 					emailExists = false;
 					if (!checkUserRegistrationFinalStatusAndRegister()) {
@@ -397,6 +272,7 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 										RemoteDatabaseConfiguration.KEY_MOBILE_NO));
 					}
 				} else {
+					progressDialog.dismiss();
 					Toast.makeText(getApplicationContext(),
 							"Email Exists. Login with that", Toast.LENGTH_SHORT)
 							.show();
@@ -414,6 +290,7 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 								RemoteDatabaseConfiguration.KEY_VOLUNTEERID));
 					}
 				} else {
+					progressDialog.dismiss();
 					// Fire Login Activity with email Id
 					Toast.makeText(getApplicationContext(),
 							"Mobile number Exists", Toast.LENGTH_SHORT).show();
@@ -423,10 +300,11 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 					volunteerIdExists = false;
 					checkUserRegistrationFinalStatusAndRegister();
 				} else {
-					// Fire Login Activity with email Id
+					// Fire Login Activity with VolunteerId
 					Toast.makeText(getApplicationContext(),
 							"VolunteerId exists!!!!!", Toast.LENGTH_SHORT)
 							.show();
+					progressDialog.dismiss();
 				}
 			}
 
@@ -480,31 +358,75 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 	}
 
 	void setPrefernces() {
-		SharedPreferences settings;
-		Editor editor;
-		settings = getApplicationContext().getSharedPreferences(
-				SharedPreferencesKey.PREFS_NAME, Context.MODE_PRIVATE);
-		editor = settings.edit();
+		SharedPreferencesKey.putInSharedPreferences(
+				SharedPreferencesKey.KEY_NAME, registeredUser.getName(), this);
+		SharedPreferencesKey.putInSharedPreferences(
+				SharedPreferencesKey.KEY_BATCH,
+				String.valueOf(registeredUser.getBatch()), this);
+		SharedPreferencesKey.putInSharedPreferences(
+				SharedPreferencesKey.KEY_BRANCH, registeredUser.getBranch(),
+				this);
+		SharedPreferencesKey.putInSharedPreferences(
+				SharedPreferencesKey.KEY_EMAIL_ID, registeredUser.getEmailId(),
+				this);
+		SharedPreferencesKey.putInSharedPreferences(
+				SharedPreferencesKey.KEY_ROLLNO,
+				String.valueOf(registeredUser.getRollNo()), this);
+		SharedPreferencesKey.putInSharedPreferences(
+				SharedPreferencesKey.KEY_MOBILE_NO,
+				String.valueOf(registeredUser.getMobileNo()), this);
+		SharedPreferencesKey.putInSharedPreferences(
+				SharedPreferencesKey.KEY_VOLUNTEERID,
+				registeredUser.getVolunteerId(), this);
+	}
 
-		editor.putString(SharedPreferencesKey.KEY_NAME,
-				registeredUser.getName());
-		editor.putString(SharedPreferencesKey.KEY_BATCH,
-				String.valueOf(registeredUser.getBatch()));
-		editor.putString(SharedPreferencesKey.KEY_BRANCH,
-				registeredUser.getBranch());
-		editor.putString(SharedPreferencesKey.KEY_EMAIL_ID,
-				registeredUser.getEmailId());
-		editor.putString(SharedPreferencesKey.KEY_ROLLNO,
-				String.valueOf(registeredUser.getRollNo()));
-		editor.putString(SharedPreferencesKey.KEY_MOBILE_NO,
-				String.valueOf(registeredUser.getMobileNo()));
-		editor.putString(SharedPreferencesKey.KEY_VOLUNTEERID,
-				registeredUser.getVolunteerId());
-
-		editor.commit();
-	}	
-
-	public Context getApplicationContext(){
+	public Context getApplicationContext() {
 		return this;
+	}
+
+	private class CustomTextWatcher implements TextWatcher {
+
+		EditText editText;
+
+		public CustomTextWatcher(EditText editText) {
+			this.editText = editText;
+		}
+
+		@Override
+		public void beforeTextChanged(CharSequence s, int start, int count,
+				int after) {
+		}
+
+		@Override
+		public void onTextChanged(CharSequence s, int start, int before,
+				int count) {
+		}
+
+		@Override
+		public void afterTextChanged(Editable s) {
+			try {
+				if (editText == rollNoBox) {
+					Validator.validateRollNo(editText.getText().toString());
+				} else if (editText == emailBox) {
+					Validator.validateEmail(editText.getText().toString());
+				} else if (editText == passwordBox) {
+					Validator.validatePassword(editText.getText().toString());
+				} else if (editText == mobileNoBox) {
+					Validator
+							.validateMobileNo(mobileNoBox.getText().toString());
+				} else if (editText == nameBox) {
+					if (nameBox.getText().toString().trim()
+							.equalsIgnoreCase("")) {
+						nameBox.setError("Name can not be blank");
+						error = true;
+						return;
+					}
+				}
+				error = false;
+			} catch (ValidationException e) {
+				error = true;
+				editText.setError(e.getMessage());
+			}
+		}
 	}
 }
