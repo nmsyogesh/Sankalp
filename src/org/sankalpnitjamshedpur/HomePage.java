@@ -2,10 +2,13 @@ package org.sankalpnitjamshedpur;
 
 import org.sankalpnitjamshedpur.tabs.TabPagerAdapter;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 
 @SuppressWarnings("deprecation")
 public class HomePage extends ActionBarActivity implements
@@ -25,8 +28,10 @@ public class HomePage extends ActionBarActivity implements
 		viewPager = (ViewPager) findViewById(R.id.pager);
 		tabPagerAdapter = new TabPagerAdapter(getSupportFragmentManager());
 		viewPager.setAdapter(tabPagerAdapter);
-		
+
 		actionBar = getSupportActionBar();
+		actionBar.setDisplayHomeAsUpEnabled(true);
+		actionBar.setIcon(R.drawable.logo);
 
 		// Enable Tabs on Action Bar
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -59,7 +64,7 @@ public class HomePage extends ActionBarActivity implements
 	public void onTabReselected(android.support.v7.app.ActionBar.Tab arg0,
 			android.support.v4.app.FragmentTransaction arg1) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -73,6 +78,24 @@ public class HomePage extends ActionBarActivity implements
 	public void onTabUnselected(android.support.v7.app.ActionBar.Tab arg0,
 			android.support.v4.app.FragmentTransaction arg1) {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.logout_action:
+			ProgressDialog.show(this, "Logging Out", "Please wait!!", true , true);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
 	}
 }

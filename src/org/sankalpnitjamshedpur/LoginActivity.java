@@ -10,6 +10,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.sankalpnitjamshedpur.constants.LoginConstants;
 import org.sankalpnitjamshedpur.db.HttpRequestHandler;
 import org.sankalpnitjamshedpur.db.RegistrationStage;
 import org.sankalpnitjamshedpur.db.RemoteDatabaseConfiguration;
@@ -54,13 +55,16 @@ public class LoginActivity extends Activity implements OnClickListener,
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.login_page);
+		String registeredType = getIntent().getStringExtra(
+				LoginConstants.KEY_REGISTERED_TYPE);
+
 		inputParam = (EditText) findViewById(R.id.inputParam);
 		password = (EditText) findViewById(R.id.password);
 		loginButton = (Button) findViewById(R.id.loginButton);
 		loginOptionSpinner = (Spinner) findViewById(R.id.login_option);
-		volunteerIdHelp= (TextView) findViewById(R.id.volunteerIdHelp);
+		volunteerIdHelp = (TextView) findViewById(R.id.volunteerIdHelp);
 		loginButton.setOnClickListener(this);
-		initiateErrorListeners();
+		initiateErrorListeners();		
 
 		ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter
 				.createFromResource(this, R.array.login_options,
@@ -76,7 +80,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 					public void onItemSelected(AdapterView<?> parent,
 							View view, int position, long id) {
 						option = (String) parent.getItemAtPosition(position);
-						inputParam.setText("");
+						//inputParam.setText("");
 						if (option.equalsIgnoreCase("Volunteer Id")) {
 							volunteerIdHelp.setVisibility(View.VISIBLE);
 							inputParam.setHint("Enter your Volunteer Id");
@@ -94,6 +98,20 @@ public class LoginActivity extends Activity implements OnClickListener,
 						// TODO Auto-generated method stub
 					}
 				});
+
+		if (registeredType != null) {
+			if (registeredType.equalsIgnoreCase(LoginConstants.KEY_EMAILID)) {
+				loginOptionSpinner.setSelection(1);
+			} else if (registeredType
+					.equalsIgnoreCase(LoginConstants.KEY_MOBILENO)) {
+				loginOptionSpinner.setSelection(2);
+			} else if (registeredType
+					.equalsIgnoreCase(LoginConstants.KEY_VOLUNTEERID)) {
+				loginOptionSpinner.setSelection(0);
+			}
+			String text = getIntent().getStringExtra(registeredType);
+			inputParam.setText(text);
+		}
 	}
 
 	private void initiateErrorListeners() {
@@ -102,11 +120,13 @@ public class LoginActivity extends Activity implements OnClickListener,
 
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {}
+					int count) {
+			}
 
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {}
+					int after) {
+			}
 
 			@Override
 			public void afterTextChanged(Editable s) {
@@ -136,11 +156,13 @@ public class LoginActivity extends Activity implements OnClickListener,
 		password.addTextChangedListener(new TextWatcher() {
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {}
+					int after) {
+			}
 
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {}
+					int count) {
+			}
 
 			@Override
 			public void afterTextChanged(Editable s) {
@@ -176,19 +198,22 @@ public class LoginActivity extends Activity implements OnClickListener,
 						RemoteDatabaseConfiguration.KEY_VOLUNTEERID));
 			} else if (option.equalsIgnoreCase("Email Id")) {
 				requestHandler.execute(getHttpRegistrationGetRequest(
-						inputString.toLowerCase(), RemoteDatabaseConfiguration.KEY_EMAIL_ID));
+						inputString.toLowerCase(),
+						RemoteDatabaseConfiguration.KEY_EMAIL_ID));
 			} else if (option.equalsIgnoreCase("Mobile No")) {
 				requestHandler
 						.execute(getHttpRegistrationGetRequest(inputString,
 								RemoteDatabaseConfiguration.KEY_MOBILE_NO));
 			}
-			progressDialog = ProgressDialog.show(this, "Please Wait", "We are logging you in!!");
+			progressDialog = ProgressDialog.show(this, "Please Wait",
+					"We are logging you in!!");
 			progressDialog.setCancelable(true);
 		}
 	}
-	
+
 	private void checkfields() {
-		// Setting text boxes with their values so that their onTextChanged Method is triggered		
+		// Setting text boxes with their values so that their onTextChanged
+		// Method is triggered
 		inputParam.setText(inputParam.getText().toString());
 		password.setText(password.getText().toString());
 	}
@@ -210,9 +235,10 @@ public class LoginActivity extends Activity implements OnClickListener,
 	public void onRequestResult(HttpResponse httpResponse,
 			RegistrationStage registrationStage) {
 		progressDialog.dismiss();
-		if(httpResponse == null) {
+		if (httpResponse == null) {
 			Toast.makeText(getApplicationContext(),
-					"Login failed. Please check Internet connectivity.", Toast.LENGTH_LONG).show();	
+					"Login failed. Please check Internet connectivity.",
+					Toast.LENGTH_LONG).show();
 			return;
 		}
 		if (RegistrationStage.LOGIN == registrationStage) {
@@ -277,7 +303,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 					Integer.parseInt(dataObject.getString("RollNo")),
 					dataObject.getString("EmailId"),
 					Integer.parseInt(dataObject.getString("Batch")),
-					"branch not found", dataObject.getString("Password"),
+					dataObject.getString("Branch"), dataObject.getString("Password"),
 					Long.parseLong(dataObject.getString("MobileNo")));
 		}
 		return null;
@@ -290,6 +316,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 			// Pass this registered user in sharedPrefernces for further usage
 			setPrefernces();
 			startActivity(homePageActivityIntent);
+			finish();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -318,8 +345,8 @@ public class LoginActivity extends Activity implements OnClickListener,
 
 		editor.commit();
 	}
-	
-	public Context getApplicationContext(){
+
+	public Context getApplicationContext() {
 		return this;
 	}
 }

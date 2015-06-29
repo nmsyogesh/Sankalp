@@ -16,6 +16,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.sankalpnitjamshedpur.constants.LoginConstants;
 import org.sankalpnitjamshedpur.db.DatabaseHandler;
 import org.sankalpnitjamshedpur.db.HttpRequestHandler;
 import org.sankalpnitjamshedpur.db.RegistrationStage;
@@ -144,8 +145,9 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 			requestHandler.execute(getHttpRegistrationGetRequest(
 					userToBeRegistered.getEmailId(),
 					RemoteDatabaseConfiguration.KEY_EMAIL_ID));
-			
-			progressDialog = ProgressDialog.show(this, "Please Wait", "We are registering you!!");
+
+			progressDialog = ProgressDialog.show(this, "Please Wait",
+					"We are registering you!!");
 		}
 	}
 
@@ -273,6 +275,8 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 					}
 				} else {
 					progressDialog.dismiss();
+					startLoginActivity(userToBeRegistered.getEmailId(),
+							LoginConstants.KEY_EMAILID);
 					Toast.makeText(getApplicationContext(),
 							"Email Exists. Login with that", Toast.LENGTH_SHORT)
 							.show();
@@ -291,7 +295,9 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 					}
 				} else {
 					progressDialog.dismiss();
-					// Fire Login Activity with email Id
+					startLoginActivity(
+							String.valueOf(userToBeRegistered.getMobileNo()),
+							LoginConstants.KEY_MOBILENO);
 					Toast.makeText(getApplicationContext(),
 							"Mobile number Exists", Toast.LENGTH_SHORT).show();
 				}
@@ -300,10 +306,11 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 					volunteerIdExists = false;
 					checkUserRegistrationFinalStatusAndRegister();
 				} else {
-					// Fire Login Activity with VolunteerId
+					startLoginActivity(userToBeRegistered.getVolunteerId(),
+							LoginConstants.KEY_VOLUNTEERID);
 					Toast.makeText(getApplicationContext(),
-							"VolunteerId exists!!!!!", Toast.LENGTH_SHORT)
-							.show();
+							"VolunteerId exists!! Please Login",
+							Toast.LENGTH_SHORT).show();
 					progressDialog.dismiss();
 				}
 			}
@@ -336,6 +343,21 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 			// Pass this registered user in sharedPrefernces for further usage
 			setPrefernces();
 			startActivity(homePageActivityIntent);
+			finish();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void startLoginActivity(String input, String inputType) {
+		try {
+			Intent loginPageActivityIntent = new Intent(this,
+					Class.forName("org.sankalpnitjamshedpur.LoginActivity"));
+			loginPageActivityIntent.putExtra(
+					LoginConstants.KEY_REGISTERED_TYPE, inputType);
+			loginPageActivityIntent.putExtra(inputType, input);
+			startActivity(loginPageActivityIntent);
+			finish();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
