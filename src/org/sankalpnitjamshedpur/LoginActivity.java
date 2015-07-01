@@ -10,11 +10,11 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.sankalpnitjamshedpur.constants.LoginConstants;
 import org.sankalpnitjamshedpur.db.HttpRequestHandler;
 import org.sankalpnitjamshedpur.db.RegistrationStage;
 import org.sankalpnitjamshedpur.db.RemoteDatabaseConfiguration;
 import org.sankalpnitjamshedpur.entity.User;
+import org.sankalpnitjamshedpur.helper.LoginConstants;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
 import org.sankalpnitjamshedpur.helper.ValidationException;
 import org.sankalpnitjamshedpur.helper.Validator;
@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -55,6 +56,11 @@ public class LoginActivity extends Activity implements OnClickListener,
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.login_page);
+
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+				.permitAll().build();
+		StrictMode.setThreadPolicy(policy);
+
 		String registeredType = getIntent().getStringExtra(
 				LoginConstants.KEY_REGISTERED_TYPE);
 
@@ -64,7 +70,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 		loginOptionSpinner = (Spinner) findViewById(R.id.login_option);
 		volunteerIdHelp = (TextView) findViewById(R.id.volunteerIdHelp);
 		loginButton.setOnClickListener(this);
-		initiateErrorListeners();		
+		initiateErrorListeners();
 
 		ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter
 				.createFromResource(this, R.array.login_options,
@@ -80,7 +86,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 					public void onItemSelected(AdapterView<?> parent,
 							View view, int position, long id) {
 						option = (String) parent.getItemAtPosition(position);
-						//inputParam.setText("");
+						// inputParam.setText("");
 						if (option.equalsIgnoreCase("Volunteer Id")) {
 							volunteerIdHelp.setVisibility(View.VISIBLE);
 							inputParam.setHint("Enter your Volunteer Id");
@@ -303,8 +309,9 @@ public class LoginActivity extends Activity implements OnClickListener,
 					Integer.parseInt(dataObject.getString("RollNo")),
 					dataObject.getString("EmailId"),
 					Integer.parseInt(dataObject.getString("Batch")),
-					dataObject.getString("Branch"), dataObject.getString("Password"),
-					Long.parseLong(dataObject.getString("MobileNo")));
+					dataObject.getString("Branch"),
+					dataObject.getString("Password"), Long.parseLong(dataObject
+							.getString("MobileNo")));
 		}
 		return null;
 	}

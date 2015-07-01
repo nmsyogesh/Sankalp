@@ -3,6 +3,7 @@ package org.sankalpnitjamshedpur.tabs;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -13,6 +14,9 @@ import net.lingala.zip4j.util.Zip4jConstants;
 
 import org.sankalpnitjamshedpur.R;
 import org.sankalpnitjamshedpur.adapter.ImageAdapter;
+import org.sankalpnitjamshedpur.db.DatabaseHandler;
+import org.sankalpnitjamshedpur.entity.ClassRecord;
+import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -40,14 +44,21 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 	// directory name to store captured images and videos
 	private static final String IMAGE_DIRECTORY_NAME = "Hello Camera";
 
+	DatabaseHandler dbHandler;
+
 	GridView gridView;
 	EditText editTextEmail, editTextSubject, editTextMessage;
 	Button btnSend, btnAttachment, btnCapturePicture;
+	Button startClass, endClass;
 	String email, subject, message, attachmentFile;
 	Uri fileUri;
 	ArrayList<Uri> URIList = new ArrayList<Uri>();
 	private static final int PICK_FROM_GALLERY = 101;
 	int columnIndex;
+
+	String volunteerId;
+
+	long startTime, endTime;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -55,10 +66,14 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 
 		View android = inflater.inflate(R.layout.fragment_takeclass, container,
 				false);
-		
+
+		dbHandler = new DatabaseHandler(android.getContext());
+		volunteerId = SharedPreferencesKey.getStringFromSharedPreferences(
+				SharedPreferencesKey.KEY_VOLUNTEERID, "", android.getContext());
+
 		if (savedInstanceState != null) {
 			fileUri = savedInstanceState.getParcelable("file_uri");
-	    }
+		}
 
 		gridView = (GridView) android.findViewById(R.id.previewPane);
 
@@ -67,11 +82,18 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		editTextMessage = (EditText) android.findViewById(R.id.editTextMessage);
 		btnAttachment = (Button) android.findViewById(R.id.buttonAttachment);
 		btnSend = (Button) android.findViewById(R.id.buttonSend);
+
+		startClass = (Button) android.findViewById(R.id.buttonStartClass);
+		endClass = (Button) android.findViewById(R.id.buttonEndClass);
+		endClass.setEnabled(false);
+
 		btnCapturePicture = (Button) android
 				.findViewById(R.id.btnCapturePicture);
 		btnSend.setOnClickListener(this);
 		btnAttachment.setOnClickListener(this);
 		btnCapturePicture.setOnClickListener(this);
+		startClass.setOnClickListener(this);
+		endClass.setOnClickListener(this);
 
 		if (!isDeviceSupportCamera()) {
 			Toast.makeText(getActivity().getApplicationContext(),
@@ -102,7 +124,8 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == PICK_FROM_GALLERY
-				&& resultCode == android.app.Activity.RESULT_OK && data != null && data.getData() != null) {
+				&& resultCode == android.app.Activity.RESULT_OK && data != null
+				&& data.getData() != null) {
 			/**
 			 * Get Path
 			 */
@@ -167,7 +190,8 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 
 				this.startActivity(Intent.createChooser(emailIntent,
 						"Sending email..."));
-				Toast.makeText(getActivity().getApplicationContext(), "Sending....", Toast.LENGTH_LONG).show();
+				Toast.makeText(getActivity().getApplicationContext(),
+						"Sending....", Toast.LENGTH_LONG).show();
 
 			} catch (Throwable t) {
 				Toast.makeText(getActivity().getApplicationContext(),
@@ -178,6 +202,19 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		if (v == btnCapturePicture) {
 			Log.i(attachmentFile, "taking pic");
 			captureImage();
+		}
+		if (v == startClass) {
+			startTime = Calendar.getInstance().getTimeInMillis();
+			startClass.setEnabled(false);
+			endClass.setEnabled(true);
+		}
+		if (v == endClass) {
+			endTime = Calendar.getInstance().getTimeInMillis();
+			startClass.setEnabled(true);
+			endClass.setEnabled(false);
+
+			dbHandler.addClassRecord(new ClassRecord(null, startTime, endTime,
+					volunteerId, 5));
 		}
 	}
 
@@ -265,23 +302,26 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 	 */
 	private void previewCapturedImage() {
 		gridView.setVerticalScrollBarEnabled(false);
-		gridView.setAdapter(new ImageAdapter(getActivity().getApplicationContext(), URIList));
+		gridView.setAdapter(new ImageAdapter(getActivity()
+				.getApplicationContext(), URIList));
 	}
 
 	public void openGallery() {
-		
+
 		Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
-	    getIntent.setType("image/*");
+		getIntent.setType("image/*");
 
-	    Intent pickIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-	    pickIntent.setType("image/*");
+		Intent pickIntent = new Intent(Intent.ACTION_PICK,
+				android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+		pickIntent.setType("image/*");
 
-	    Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
-	    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {pickIntent});
+		Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
+		chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS,
+				new Intent[] { pickIntent });
 
-	    chooserIntent.putExtra("return-data", true);
-	    startActivityForResult(chooserIntent, PICK_FROM_GALLERY);  
-	    
+		chooserIntent.putExtra("return-data", true);
+		startActivityForResult(chooserIntent, PICK_FROM_GALLERY);
+
 	}
 
 	/**

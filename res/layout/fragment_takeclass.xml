@@ -6,13 +6,33 @@
     android:background="#73CDDF"
     android:orientation="vertical"
     android:padding="5dp" >
+    
+    <Button
+        android:id="@+id/buttonStartClass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_margin="10dp"
+        android:layout_alignParentTop="true"
+        android:background="#00CCCC"
+        android:text="Start Class" />
+
+    <Button
+        android:id="@+id/buttonEndClass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_margin="10dp"
+        android:background="#00CCCC"
+        android:layout_alignParentTop="true"
+        android:text="End Class" />    
 
     <Button
         android:id="@+id/buttonAttachment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@id/buttonStartClass"
         android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
         android:background="#00CCCC"
         android:text="attachment" />
 
@@ -20,9 +40,8 @@
         android:id="@+id/btnCapturePicture"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
+        android:layout_below="@id/buttonEndClass"
         android:background="#00CCCC"
-        android:layout_alignParentTop="true"
         android:text="Take a Picture" />
 
     <EditText

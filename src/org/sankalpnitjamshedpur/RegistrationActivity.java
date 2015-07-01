@@ -16,12 +16,12 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.sankalpnitjamshedpur.constants.LoginConstants;
 import org.sankalpnitjamshedpur.db.DatabaseHandler;
 import org.sankalpnitjamshedpur.db.HttpRequestHandler;
 import org.sankalpnitjamshedpur.db.RegistrationStage;
 import org.sankalpnitjamshedpur.db.RemoteDatabaseConfiguration;
 import org.sankalpnitjamshedpur.entity.User;
+import org.sankalpnitjamshedpur.helper.LoginConstants;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
 import org.sankalpnitjamshedpur.helper.ValidationException;
 import org.sankalpnitjamshedpur.helper.Validator;
@@ -31,6 +31,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -63,6 +64,11 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.registration_page);
+		
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+				.permitAll().build();
+		StrictMode.setThreadPolicy(policy);
+		
 		dbHandler = new DatabaseHandler(this);
 		registerButton = (Button) findViewById(R.id.registerButton);
 		nameBox = (EditText) findViewById(R.id.name);

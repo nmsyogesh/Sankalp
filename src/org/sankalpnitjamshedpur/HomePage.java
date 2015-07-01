@@ -18,7 +18,7 @@ public class HomePage extends ActionBarActivity implements
 	private TabPagerAdapter tabPagerAdapter;
 	private ActionBar actionBar;
 	// Tab titles
-	private String[] tabs = { "Profile", "Take a Class", "Report a Issue" };
+	private String[] tabs = { "Profile", "Take a Class", "Report a Issue", "Class records" };
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
