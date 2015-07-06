@@ -1,8 +1,11 @@
 package org.sankalpnitjamshedpur;
 
+import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
 import org.sankalpnitjamshedpur.tabs.TabPagerAdapter;
 
-import android.app.ProgressDialog;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
@@ -18,7 +21,8 @@ public class HomePage extends ActionBarActivity implements
 	private TabPagerAdapter tabPagerAdapter;
 	private ActionBar actionBar;
 	// Tab titles
-	private String[] tabs = { "Profile", "Take a Class", "Report a Issue", "Class records" };
+	private String[] tabs = { "Profile", "Take a Class", "Report a Issue",
+			"Class records" };
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +96,33 @@ public class HomePage extends ActionBarActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.logout_action:
-			ProgressDialog.show(this, "Logging Out", "Please wait!!", true , true);
+
+			new AlertDialog.Builder(this)
+					.setTitle("Logging Out")
+					.setMessage("Press OK to Logout!!")
+					.setCancelable(true)
+					.setPositiveButton("OK",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int which) {
+									Intent intent;
+									try {
+										intent = new Intent(
+												getApplicationContext(),
+												Class.forName("org.sankalpnitjamshedpur.LoginActivity"));
+										SharedPreferencesKey
+												.putInSharedPreferences(
+														SharedPreferencesKey.KEY_IS_LOGGED_IN,
+														false,
+														getApplicationContext());
+										startActivity(intent);
+										finish();
+									} catch (ClassNotFoundException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+								}
+							}).create().show();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);

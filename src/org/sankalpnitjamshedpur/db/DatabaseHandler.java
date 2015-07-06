@@ -1,12 +1,11 @@
 package org.sankalpnitjamshedpur.db;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.File;
 import java.util.ArrayList;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
 import org.sankalpnitjamshedpur.entity.User;
 
@@ -61,7 +60,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		String CREATE_RECORDS_TABLE = "CREATE TABLE " + TABLE_CLASS_RECORDS
 				+ "(" + KEY_START_TIME + " INTEGER PRIMARY KEY," + KEY_URI_LIST
-				+ " BLOB," + KEY_VOLUNTEERID + " TEXT ," + KEY_END_TIME
+				+ " TEXT ," + KEY_VOLUNTEERID + " TEXT ," + KEY_END_TIME
 				+ " INTEGER ," + KEY_CENTRE + " INTEGER" + ")";
 
 		db.execSQL(CREATE_CONTACTS_TABLE);
@@ -107,7 +106,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		ContentValues values = new ContentValues();
-		values.put(KEY_URI_LIST, searialiseList(classRecord.getUriList()));
+		values.put(KEY_URI_LIST,
+				getUriStringFromUriList(classRecord.getUriList()));
 		values.put(KEY_VOLUNTEERID, classRecord.getVolunteerId());
 		values.put(KEY_START_TIME, String.valueOf(classRecord.getStartTime()));
 		values.put(KEY_END_TIME, String.valueOf(classRecord.getEndTime()));
@@ -116,6 +116,49 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		// Inserting Row
 		db.insert(TABLE_CLASS_RECORDS, null, values);
 		db.close(); // Closing database connection
+	}
+
+	private String getUriStringFromUriList(ArrayList<Uri> uriList) {
+		if(uriList == null || uriList.size()==0) 
+			return null;
+		
+		ArrayList<String> uriStrings = new ArrayList<String>();
+		for(Uri uri: uriList) {
+			uriStrings.add(uri.toString());
+		}
+		JSONObject json = new JSONObject();
+		try {
+			json.put("uriList", new JSONArray(uriStrings));
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return json.toString();
+	}
+
+	private ArrayList<Uri> getUriListFromUriString(String uriString) {
+		if(uriString == null || uriString.trim().isEmpty())
+			return null;
+		ArrayList<Uri> uriList = new ArrayList<Uri>();
+		ArrayList<String> uriStrings = new ArrayList<String>();
+		JSONObject json;
+		try {
+			json = new JSONObject(uriString);
+
+			JSONArray jsonArray = json.optJSONArray("uriList");
+			if(jsonArray == null) {
+				return null;
+			}
+			for(int i=0; i<jsonArray.length(); i++) {
+				if(!jsonArray.getString(i).equals("null"))
+					uriStrings.add(jsonArray.getString(i));
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		for(String uriPath: uriStrings) {
+			uriList.add(Uri.parse(uriPath));
+		}
+		return uriList;
 	}
 
 	public ArrayList<ClassRecord> getAllClassRecords() {
@@ -129,7 +172,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			do {
 				ClassRecord record = new ClassRecord();
 				record.setVolunteerId(cursor.getString(2));
-				record.setUriList(desearialiseList(cursor.getBlob(1)));
+				record.setUriList(getUriListFromUriString(cursor.getString(1)));
 				record.setStartTime(cursor.getLong(0));
 				record.setEndTime(cursor.getLong(3));
 				record.setCentreNo(cursor.getInt(4));
@@ -140,35 +183,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		db.close();
 		return classRecords;
-	}
-
-	byte[] searialiseList(ArrayList<Uri> uriList) {
-		ObjectOutputStream outStream = null;
-
-		try {
-			ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-			outStream = new ObjectOutputStream(byteOut);
-			outStream.writeObject(uriList);
-			outStream.close();
-			return byteOut.toByteArray();
-		} catch (Exception e) {
-
-		}
-		return null;
-	}
-
-	ArrayList<Uri> desearialiseList(byte[] uriList) {
-		ObjectInputStream inStream = null;
-		ArrayList<Uri> listTobeReturned = null;
-		try {
-			ByteArrayInputStream bytein = new ByteArrayInputStream(uriList);
-			inStream = new ObjectInputStream(bytein);
-			listTobeReturned = (ArrayList<Uri>) inStream.readObject();
-			inStream.close();
-		} catch (Exception e) {
-
-		}
-		return listTobeReturned;
 	}
 
 	// Getting single contact
@@ -190,6 +204,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				.getString(3)), cursor.getString(4), cursor.getString(5),
 				Long.parseLong(cursor.getString(6)));
 		contact.setVolunteerId(cursor.getString(7));
+		db.close();
+
 		// return contact
 		return contact;
 	}
@@ -212,6 +228,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				.getString(3)), cursor.getString(4), cursor.getString(5),
 				Long.parseLong(cursor.getString(6)));
 		contact.setVolunteerId(cursor.getString(7));
+
+		db.close();
 		// return contact
 		return contact;
 	}
@@ -234,8 +252,36 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				.getString(3)), cursor.getString(4), cursor.getString(5),
 				Long.parseLong(cursor.getString(6)));
 		contact.setVolunteerId(cursor.getString(7));
+
+		db.close();
 		// return contact
 		return contact;
+	}
+
+	public ClassRecord getClassRecordByStartTime(long startTime) {
+		SQLiteDatabase db = this.getReadableDatabase();
+
+		Cursor cursor = db.query(TABLE_CLASS_RECORDS, new String[] {
+				KEY_START_TIME, KEY_URI_LIST, KEY_VOLUNTEERID, KEY_END_TIME,
+				KEY_CENTRE }, KEY_START_TIME + "=?",
+				new String[] { String.valueOf(startTime) }, null, null, null,
+				null);
+
+		if (cursor != null && cursor.getCount() > 0)
+			cursor.moveToFirst();
+		else
+			return null;
+
+		ClassRecord record = new ClassRecord();
+		record.setVolunteerId(cursor.getString(2));
+		record.setUriList(getUriListFromUriString(cursor.getString(1)));
+		record.setStartTime(cursor.getLong(0));
+		record.setEndTime(cursor.getLong(3));
+		record.setCentreNo(cursor.getInt(4));
+
+		db.close();
+
+		return record;
 	}
 
 	public User doesUserExists(User user) {
@@ -274,10 +320,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	}
 
 	// Deleting single contact
-	public void deleteClassRecord(ClassRecord classRecord) {
+	public void deleteClassRecord(long startTime) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		db.delete(TABLE_CLASS_RECORDS, KEY_START_TIME + " = ?",
-				new String[] { String.valueOf(classRecord.getStartTime()) });
+				new String[] { String.valueOf(startTime) });
 		db.close();
 	}
 
@@ -287,7 +333,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getReadableDatabase();
 		Cursor cursor = db.rawQuery(countQuery, null);
 		cursor.close();
-
+		db.close();
 		// return count
 		return cursor.getCount();
 	}

@@ -57,6 +57,13 @@ public class LoginActivity extends Activity implements OnClickListener,
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.login_page);
 
+		if (SharedPreferencesKey.getBooleanFromSharedPreferences(
+				SharedPreferencesKey.KEY_IS_LOGGED_IN, false,
+				getApplicationContext())) {
+			startHomePageActivityWithUser();
+			finish();
+		}
+
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
 				.permitAll().build();
 		StrictMode.setThreadPolicy(policy);
@@ -277,6 +284,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 				} else {
 					loggedInUser = checkPasswordAndCreateUser(mainJsonObj);
 					if (loggedInUser != null) {
+						setPrefernces();
 						startHomePageActivityWithUser();
 					} else {
 						Toast.makeText(getApplicationContext(),
@@ -321,7 +329,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 			Intent homePageActivityIntent = new Intent(this,
 					Class.forName("org.sankalpnitjamshedpur.HomePage"));
 			// Pass this registered user in sharedPrefernces for further usage
-			setPrefernces();
+
 			startActivity(homePageActivityIntent);
 			finish();
 		} catch (ClassNotFoundException e) {
@@ -349,6 +357,8 @@ public class LoginActivity extends Activity implements OnClickListener,
 				String.valueOf(loggedInUser.getMobileNo()));
 		editor.putString(SharedPreferencesKey.KEY_VOLUNTEERID,
 				loggedInUser.getVolunteerId());
+
+		editor.putBoolean(SharedPreferencesKey.KEY_IS_LOGGED_IN, true);
 
 		editor.commit();
 	}

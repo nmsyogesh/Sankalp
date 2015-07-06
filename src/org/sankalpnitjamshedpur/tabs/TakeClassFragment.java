@@ -18,6 +18,8 @@ import org.sankalpnitjamshedpur.db.DatabaseHandler;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -30,9 +32,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class TakeClassFragment extends Fragment implements OnClickListener {
@@ -47,20 +52,23 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 	DatabaseHandler dbHandler;
 
 	GridView gridView;
-	EditText editTextEmail, editTextSubject, editTextMessage;
-	Button btnSend, btnAttachment, btnCapturePicture;
-	Button startClass, endClass;
+	EditText editTextSubject, editTextMessage;
+	Button btnSend, btnAttachment, btnCapturePicture, centreOption;
+	ImageButton classFunctionButton;
 	String email, subject, message, attachmentFile;
 	Uri fileUri;
+	TextView directionView;
 	ArrayList<Uri> URIList = new ArrayList<Uri>();
 	private static final int PICK_FROM_GALLERY = 101;
 	int columnIndex;
 
+	boolean classAlreadyStarted = false;
+
 	String volunteerId;
+	int centreNo = 1;
 
 	long startTime, endTime;
 
-	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 
@@ -77,43 +85,61 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 
 		gridView = (GridView) android.findViewById(R.id.previewPane);
 
-		editTextEmail = (EditText) android.findViewById(R.id.editTextTo);
 		editTextSubject = (EditText) android.findViewById(R.id.editTextSubject);
 		editTextMessage = (EditText) android.findViewById(R.id.editTextMessage);
 		btnAttachment = (Button) android.findViewById(R.id.buttonAttachment);
 		btnSend = (Button) android.findViewById(R.id.buttonSend);
+		centreOption = (Button) android.findViewById(R.id.centreOption);
+		// TODO
+		btnSend.setEnabled(false);
+		btnAttachment.setEnabled(false);
+		directionView = (TextView) android.findViewById(R.id.directionView);
 
-		startClass = (Button) android.findViewById(R.id.buttonStartClass);
-		endClass = (Button) android.findViewById(R.id.buttonEndClass);
-		endClass.setEnabled(false);
+		classFunctionButton = (ImageButton) android
+				.findViewById(R.id.buttonClassFunction);
+
+		if (classAlreadyStarted) {
+			classFunctionButton.setImageResource(R.drawable.stop);
+			directionView.setText("Press to stop the class!!");
+		} else {
+			classFunctionButton.setImageResource(R.drawable.start);
+			directionView.setText("Press to start the class!!");
+		}
 
 		btnCapturePicture = (Button) android
 				.findViewById(R.id.btnCapturePicture);
 		btnSend.setOnClickListener(this);
 		btnAttachment.setOnClickListener(this);
 		btnCapturePicture.setOnClickListener(this);
-		startClass.setOnClickListener(this);
-		endClass.setOnClickListener(this);
+		classFunctionButton.setOnClickListener(this);
+		centreOption.setOnClickListener(this);
 
-		if (!isDeviceSupportCamera()) {
+		if (!doesDeviceSupportCamera()) {
 			Toast.makeText(getActivity().getApplicationContext(),
 					"Sorry! Your device doesn't support camera",
 					Toast.LENGTH_LONG).show();
 			Log.e(attachmentFile, "Sorry! Your device doesn't support camera");
 		}
-		Log.e(attachmentFile, "support camera");
+		Log.e(attachmentFile, "Device supports camera");
 		return android;
+	}
+
+	ArrayAdapter<CharSequence> getBatchArrayAdater() {
+		ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter
+				.createFromResource(getActivity().getApplicationContext(),
+						R.array.centre_array,
+						android.R.layout.simple_spinner_item);
+		staticAdapter
+				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		return staticAdapter;
 	}
 
 	/**
 	 * Checking device has camera hardware or not
 	 * */
-	private boolean isDeviceSupportCamera() {
+	private boolean doesDeviceSupportCamera() {
 		if (getActivity().getApplicationContext().getPackageManager()
 				.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
-			// this device has a camera
-			Toast.makeText(getActivity().getApplicationContext(),
-					"This device supports camera", Toast.LENGTH_LONG).show();
 			return true;
 		} else {
 			// no camera on this device
@@ -159,7 +185,7 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		}
 		if (v == btnSend) {
 			try {
-				email = editTextEmail.getText().toString();
+
 				subject = editTextSubject.getText().toString();
 				message = editTextMessage.getText().toString();
 
@@ -203,19 +229,43 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 			Log.i(attachmentFile, "taking pic");
 			captureImage();
 		}
-		if (v == startClass) {
-			startTime = Calendar.getInstance().getTimeInMillis();
-			startClass.setEnabled(false);
-			endClass.setEnabled(true);
-		}
-		if (v == endClass) {
-			endTime = Calendar.getInstance().getTimeInMillis();
-			startClass.setEnabled(true);
-			endClass.setEnabled(false);
 
-			dbHandler.addClassRecord(new ClassRecord(null, startTime, endTime,
-					volunteerId, 5));
+		if (v == classFunctionButton && !classAlreadyStarted) {
+			startTime = Calendar.getInstance().getTimeInMillis();
+			classFunctionButton.setImageResource(R.drawable.stop);
+			directionView.setText("Press to stop the class!!");
+			classAlreadyStarted = true;
+		} else if (v == classFunctionButton && classAlreadyStarted) {
+			endTime = Calendar.getInstance().getTimeInMillis();
+			classFunctionButton.setImageResource(R.drawable.start);
+			classAlreadyStarted = false;
+			directionView.setText("Press to start the class!!");
+			dbHandler.addClassRecord(new ClassRecord(URIList, startTime,
+					endTime, volunteerId, centreNo));
+			URIList.clear();
 		}
+
+		if (v == centreOption) {
+			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+					getActivity());
+
+			// Setting Dialog Title
+			alertDialogBuilder.setTitle("Choose Centre");
+
+			alertDialogBuilder.setSingleChoiceItems(R.array.centre_array, 0,
+					null).setPositiveButton("OK",
+					new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+							centreNo = 1 + ((AlertDialog) dialog)
+									.getListView().getCheckedItemPosition();
+						}
+					});
+
+			alertDialogBuilder.create().show();
+		}
+
 	}
 
 	ArrayList<Uri> getCompressedUri(List<Uri> uriList) {

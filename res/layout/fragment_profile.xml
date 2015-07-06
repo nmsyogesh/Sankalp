@@ -1,178 +1,183 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:theme="@style/Theme.AppCompat.Light"
     android:layout_height="match_parent"
-    android:background="#73CDDF"
-    android:orientation="vertical"
-    android:padding="10dp" >
+    android:background="#73CDDF" >
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#00CCCC"
-        android:layout_margin="5dp"
-        android:orientation="horizontal" >
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:theme="@style/Theme.AppCompat.Light" >
 
-        <TextView
-            android:layout_width="120dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:text="Name"
-            android:textSize="15sp" />
+            android:layout_margin="5dp"
+            android:background="#00CCCC"
+            android:orientation="horizontal" >
 
-        <TextView
-            android:id="@+id/Name"
-            android:layout_width="wrap_content"
+            <TextView
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:text="Name"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/Name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:textSize="15sp" />
+            android:layout_margin="5dp"
+            android:background="#00CCCC"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:text="Branch"
+                android:textSize="15dp" />
+
+            <TextView
+                android:id="@+id/Branch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="#00CCCC"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:text="Email"
+                android:textSize="15dp" />
+
+            <TextView
+                android:id="@+id/EmailId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="#00CCCC"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:text="Contact No"
+                android:textSize="15dp" />
+
+            <TextView
+                android:id="@+id/MobileNo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="#00CCCC"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:text="Batch"
+                android:textSize="15dp" />
+
+            <TextView
+                android:id="@+id/Batch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="#00CCCC"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:text="Roll No"
+                android:textSize="15dp" />
+
+            <TextView
+                android:id="@+id/RollNo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="#00CCCC"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:text="Volunteer ID"
+                android:textSize="15dp" />
+
+            <TextView
+                android:id="@+id/VolunteerId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dp"
+                android:textSize="15sp" />
+        </LinearLayout>
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#00CCCC"
-        android:layout_margin="5dp"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:layout_width="120dp"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:text="Branch"
-            android:textSize="15dp" />
-
-        <TextView
-            android:id="@+id/Branch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:textSize="15sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#00CCCC"
-        android:layout_margin="5dp"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:layout_width="120dp"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:text="Email"
-            android:textSize="15dp" />
-
-        <TextView
-            android:id="@+id/EmailId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:textSize="15sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#00CCCC"
-        android:layout_margin="5dp"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:layout_width="120dp"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:text="Contact No"
-            android:textSize="15dp" />
-
-        <TextView
-            android:id="@+id/MobileNo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:textSize="15sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#00CCCC"
-        android:layout_margin="5dp"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:layout_width="120dp"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:text="Batch"
-            android:textSize="15dp" />
-
-        <TextView
-            android:id="@+id/Batch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:textSize="15sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#00CCCC"
-        android:layout_margin="5dp"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:layout_width="120dp"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:text="Roll No"
-            android:textSize="15dp" />
-
-        <TextView
-            android:id="@+id/RollNo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:textSize="15sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#00CCCC"
-        android:layout_margin="5dp"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:layout_width="120dp"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:text="Volunteer ID"
-            android:textSize="15dp" />
-
-        <TextView
-            android:id="@+id/VolunteerId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
-            android:textSize="15sp" />
-    </LinearLayout>
-
-</LinearLayout>
+</ScrollView>
