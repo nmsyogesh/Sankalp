@@ -78,6 +78,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 		volunteerIdHelp = (TextView) findViewById(R.id.volunteerIdHelp);
 		loginButton.setOnClickListener(this);
 		initiateErrorListeners();
+		String volunteerId = null;
 
 		ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter
 				.createFromResource(this, R.array.login_options,
@@ -94,13 +95,32 @@ public class LoginActivity extends Activity implements OnClickListener,
 							View view, int position, long id) {
 						option = (String) parent.getItemAtPosition(position);
 						// inputParam.setText("");
+						String input;
 						if (option.equalsIgnoreCase("Volunteer Id")) {
+							if ((input = SharedPreferencesKey
+									.getStringFromSharedPreferences(
+											SharedPreferencesKey.KEY_VOLUNTEERID,
+											null, getApplicationContext())) != null) {
+								inputParam.setText(input);
+							}
 							volunteerIdHelp.setVisibility(View.VISIBLE);
 							inputParam.setHint("Enter your Volunteer Id");
 						} else if (option.equalsIgnoreCase("Email Id")) {
+							if ((input = SharedPreferencesKey
+									.getStringFromSharedPreferences(
+											SharedPreferencesKey.KEY_EMAIL_ID,
+											null, getApplicationContext())) != null) {
+								inputParam.setText(input);
+							}
 							volunteerIdHelp.setVisibility(View.GONE);
 							inputParam.setHint("Enter your Email Id");
 						} else if (option.equalsIgnoreCase("Mobile No")) {
+							if ((input = SharedPreferencesKey
+									.getStringFromSharedPreferences(
+											SharedPreferencesKey.KEY_MOBILE_NO,
+											null, getApplicationContext())) != null) {
+								inputParam.setText(input);
+							}
 							volunteerIdHelp.setVisibility(View.GONE);
 							inputParam.setHint("Enter your Mobile No");
 						}
@@ -208,15 +228,15 @@ public class LoginActivity extends Activity implements OnClickListener,
 			if (option.equalsIgnoreCase("Volunteer Id")) {
 				requestHandler.execute(getHttpRegistrationGetRequest(
 						inputString.toUpperCase(),
-						RemoteDatabaseConfiguration.KEY_VOLUNTEERID));
+						RemoteDatabaseConfiguration.KEY_USER_VOLUNTEERID));
 			} else if (option.equalsIgnoreCase("Email Id")) {
 				requestHandler.execute(getHttpRegistrationGetRequest(
 						inputString.toLowerCase(),
-						RemoteDatabaseConfiguration.KEY_EMAIL_ID));
+						RemoteDatabaseConfiguration.KEY_USER_EMAIL_ID));
 			} else if (option.equalsIgnoreCase("Mobile No")) {
-				requestHandler
-						.execute(getHttpRegistrationGetRequest(inputString,
-								RemoteDatabaseConfiguration.KEY_MOBILE_NO));
+				requestHandler.execute(getHttpRegistrationGetRequest(
+						inputString,
+						RemoteDatabaseConfiguration.KEY_USER_MOBILE_NO));
 			}
 			progressDialog = ProgressDialog.show(this, "Please Wait",
 					"We are logging you in!!");
@@ -234,7 +254,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 	private HttpUriRequest getHttpRegistrationGetRequest(String value,
 			String fieldId) {
 
-		HttpGet getRequest = new HttpGet(RemoteDatabaseConfiguration.URL
+		HttpGet getRequest = new HttpGet(RemoteDatabaseConfiguration.USER_URL
 				+ "&where=" + fieldId + ",eq," + value);
 		getRequest.setHeader("User-Agent",
 				RemoteDatabaseConfiguration.USER_AGENT);

@@ -8,50 +8,29 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#73CDDF"
         android:orientation="vertical"
         android:padding="5dp"
         android:theme="@style/Theme.AppCompat.Light" >
 
-        <TextView
-            android:id="@+id/directionView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="3dp" />
-
-        <ImageButton
+        <Button
             android:id="@+id/buttonClassFunction"
-            android:layout_width="wrap_content"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/directionView"
+			android:background="@drawable/rectangle"
+			android:gravity="center_horizontal"
+			android:layout_margin="15dp"
+			android:padding="15dp"
+            android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true" />
-
-        <Button
-            android:id="@+id/buttonAttachment"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_below="@id/buttonClassFunction"
-            android:background="#00CCCC"
-            android:text="attachment" />
-
-        <Button
-            android:id="@+id/btnCapturePicture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/buttonClassFunction"
-            android:background="#00CCCC"
-            android:text="Take a Picture" />
 
         <Button
             android:id="@+id/centreOption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/btnCapturePicture"
-            android:layout_margin="3dp"
-            android:background="#00CCCC"
+            android:layout_below="@id/buttonClassFunction"
+			android:layout_margin="15dp"
+			android:padding="15dp"
+            android:background="@drawable/rectangle"
             android:gravity="center"
             android:text="Select Centre" />
 
@@ -60,7 +39,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/centreOption"
-            android:layout_margin="5dp"
+			android:layout_margin="5dp"
+			android:padding="15dp"
             android:hint="General Comments"
             android:singleLine="true" />
 
@@ -69,28 +49,29 @@
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:layout_below="@id/editTextSubject"
-            android:layout_margin="5dp"
-            android:gravity="top|left"
-            android:hint="type message here!"
+			android:layout_margin="5dp"
+			android:padding="15dp"
+            android:hint="Type message here!"
             android:inputType="textMultiLine" />
 
         <Button
-            android:id="@+id/buttonSend"
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:id="@+id/btnCapturePicture"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_below="@id/editTextMessage"
-            android:layout_centerHorizontal="true"
-            android:layout_margin="5dp"
-            android:background="#00CCCC"
-            android:text="Send" />
+            android:gravity="center_horizontal"
+			android:layout_margin="15dp"
+			android:padding="15dp"
+            android:background="@drawable/rectangle"
+            android:text="Attach a Picture Optionally" />
 
         <GridView
             android:id="@+id/previewPane"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
             android:layout_alignParentBottom="true"
-            android:layout_below="@id/buttonSend"
-            android:background="#35ACCE"
+            android:layout_below="@id/btnCapturePicture"
+            android:background="@drawable/rectangle"
             android:columnWidth="90dp"
             android:horizontalSpacing="3dp"
             android:numColumns="4"

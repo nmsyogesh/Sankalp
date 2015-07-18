@@ -2,10 +2,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#73CDDF"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="15dp"
+    android:background="@drawable/rectangle"
     tools:context=".LoginActivity" >
 
     <TextView
@@ -29,19 +28,20 @@
         android:id="@+id/inputParam"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#2a6063"
+        android:background="@drawable/rectangle"
         android:padding="10dp"
+        android:layout_margin="10dp"
         android:singleLine="true" />
 
     <EditText
         android:id="@+id/password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:background="#2a6063"
+        android:layout_margin="10dp"
+        android:padding="10dp"
+        android:background="@drawable/rectangle"
         android:hint="Your password here!"
-        android:inputType="textPassword"
-        android:padding="10dp" />
+        android:inputType="textPassword" />
 
     <Button
         android:id="@+id/loginButton"
@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="10dp"
-        android:background="#064E88"
+        android:background="#16a085"
         android:text="LOGIN!!" />
 
     <TextView

@@ -1,6 +1,5 @@
 package org.sankalpnitjamshedpur.db;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import org.json.JSONArray;
@@ -20,7 +19,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 	// All Static variables
 	// Database Version
-	private static final int DATABASE_VERSION = 1;
+	private static final int DATABASE_VERSION = 2;
 
 	// Database Name
 	private static final String DATABASE_NAME = "sankalp";
@@ -44,6 +43,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private static final String KEY_START_TIME = "startTime";
 	private static final String KEY_END_TIME = "endTime";
 	private static final String KEY_CENTRE = "centre";
+	private static final String KEY_START_LATITUDE = "startGpsLatitude";
+	private static final String KEY_START_LONGIITUDE = "startGpsLongitude";
+	private static final String KEY_END_LATITUDE = "endGpsLatitude";
+	private static final String KEY_END_LONGIITUDE = "endGpsLongitude";
+	private static final String KEY_SENT_NOTIFICATION = "sentNotification";
 
 	public DatabaseHandler(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -61,7 +65,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		String CREATE_RECORDS_TABLE = "CREATE TABLE " + TABLE_CLASS_RECORDS
 				+ "(" + KEY_START_TIME + " INTEGER PRIMARY KEY," + KEY_URI_LIST
 				+ " TEXT ," + KEY_VOLUNTEERID + " TEXT ," + KEY_END_TIME
-				+ " INTEGER ," + KEY_CENTRE + " INTEGER" + ")";
+				+ " INTEGER ," + KEY_CENTRE + " INTEGER ," + KEY_START_LATITUDE
+				+ " REAL ," + KEY_START_LONGIITUDE + " REAL ,"
+				+ KEY_END_LATITUDE + " REAL ," + KEY_END_LONGIITUDE + " REAL ,"
+				+ KEY_SENT_NOTIFICATION + " INTEGER " + ")";
 
 		db.execSQL(CREATE_CONTACTS_TABLE);
 		db.execSQL(CREATE_RECORDS_TABLE);
@@ -70,6 +77,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	// Upgrading database
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		
 		// Drop older table if existed
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CONTACTS);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CLASS_RECORDS);
@@ -112,6 +120,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		values.put(KEY_START_TIME, String.valueOf(classRecord.getStartTime()));
 		values.put(KEY_END_TIME, String.valueOf(classRecord.getEndTime()));
 		values.put(KEY_CENTRE, String.valueOf(classRecord.getCentreNo()));
+		values.put(KEY_START_LATITUDE,
+				String.valueOf(classRecord.getStartGpsLatitude()));
+		values.put(KEY_START_LONGIITUDE,
+				String.valueOf(classRecord.getStartGpsLongitude()));
+		values.put(KEY_END_LATITUDE,
+				String.valueOf(classRecord.getEndGpsLatitude()));
+		values.put(KEY_END_LONGIITUDE,
+				String.valueOf(classRecord.getEndGpsLongitude()));
+		values.put(KEY_SENT_NOTIFICATION,
+				classRecord.isSentNotification() ? "1" : "0");
 
 		// Inserting Row
 		db.insert(TABLE_CLASS_RECORDS, null, values);
@@ -119,11 +137,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	}
 
 	private String getUriStringFromUriList(ArrayList<Uri> uriList) {
-		if(uriList == null || uriList.size()==0) 
+		if (uriList == null || uriList.size() == 0)
 			return null;
-		
+
 		ArrayList<String> uriStrings = new ArrayList<String>();
-		for(Uri uri: uriList) {
+		for (Uri uri : uriList) {
 			uriStrings.add(uri.toString());
 		}
 		JSONObject json = new JSONObject();
@@ -136,7 +154,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	}
 
 	private ArrayList<Uri> getUriListFromUriString(String uriString) {
-		if(uriString == null || uriString.trim().isEmpty())
+		if (uriString == null || uriString.trim().isEmpty())
 			return null;
 		ArrayList<Uri> uriList = new ArrayList<Uri>();
 		ArrayList<String> uriStrings = new ArrayList<String>();
@@ -145,17 +163,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			json = new JSONObject(uriString);
 
 			JSONArray jsonArray = json.optJSONArray("uriList");
-			if(jsonArray == null) {
+			if (jsonArray == null) {
 				return null;
 			}
-			for(int i=0; i<jsonArray.length(); i++) {
-				if(!jsonArray.getString(i).equals("null"))
+			for (int i = 0; i < jsonArray.length(); i++) {
+				if (!jsonArray.getString(i).equals("null"))
 					uriStrings.add(jsonArray.getString(i));
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		for(String uriPath: uriStrings) {
+		for (String uriPath : uriStrings) {
 			uriList.add(Uri.parse(uriPath));
 		}
 		return uriList;
@@ -176,6 +194,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				record.setStartTime(cursor.getLong(0));
 				record.setEndTime(cursor.getLong(3));
 				record.setCentreNo(cursor.getInt(4));
+				record.setStartGpsLatitude(cursor.getDouble(5));
+				record.setStartGpsLongitude(cursor.getDouble(6));
+				record.setEndGpsLatitude(cursor.getDouble(7));
+				record.setEndGpsLongitude(cursor.getDouble(8));
+				record.setSentNotification(cursor.getInt(9) == 1 ? true : false);
 
 				classRecords.add(record);
 			} while (cursor.moveToNext());
@@ -263,7 +286,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		Cursor cursor = db.query(TABLE_CLASS_RECORDS, new String[] {
 				KEY_START_TIME, KEY_URI_LIST, KEY_VOLUNTEERID, KEY_END_TIME,
-				KEY_CENTRE }, KEY_START_TIME + "=?",
+				KEY_CENTRE, KEY_START_LATITUDE, KEY_START_LONGIITUDE,
+				KEY_END_LATITUDE, KEY_END_LONGIITUDE, KEY_SENT_NOTIFICATION },
+				KEY_START_TIME + "=?",
 				new String[] { String.valueOf(startTime) }, null, null, null,
 				null);
 
@@ -278,6 +303,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		record.setStartTime(cursor.getLong(0));
 		record.setEndTime(cursor.getLong(3));
 		record.setCentreNo(cursor.getInt(4));
+		record.setStartGpsLatitude(cursor.getDouble(5));
+		record.setStartGpsLongitude(cursor.getDouble(6));
+		record.setEndGpsLatitude(cursor.getDouble(7));
+		record.setEndGpsLongitude(cursor.getDouble(8));
+		record.setSentNotification(cursor.getInt(9) == 1 ? true : false);
 
 		db.close();
 
@@ -325,6 +355,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		db.delete(TABLE_CLASS_RECORDS, KEY_START_TIME + " = ?",
 				new String[] { String.valueOf(startTime) });
 		db.close();
+	}
+
+	// Deleting single contact
+	public int markClassRecordNotification(long startTime) {
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		ContentValues values = new ContentValues();
+		values.put(KEY_SENT_NOTIFICATION, "1");
+		// updating row
+		return db.update(TABLE_CLASS_RECORDS, values, KEY_START_TIME + " = ?",
+				new String[] { String.valueOf(startTime) });
 	}
 
 	// Getting contacts Count

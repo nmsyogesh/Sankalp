@@ -3,7 +3,7 @@
     android:id="@+id/linLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#73CDDF"
+    android:background="@drawable/rectangle"
     android:gravity="center"
     android:orientation="vertical"
     tools:context=".RegistrationActivity" >
@@ -12,6 +12,11 @@
         android:id="@+id/name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:padding="10dp"
+        android:background="@drawable/rectangle"
         android:hint="Enter your name"
         android:inputType="textCapWords" />
 
@@ -19,14 +24,23 @@
         android:id="@+id/rollNo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:padding="10dp"
+        android:background="@drawable/rectangle"
         android:hint="Enter your RollNo"
         android:inputType="number" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:padding="10dp"
+        android:background="@drawable/rectangle"
         android:orientation="horizontal" >
 
         <TextView
@@ -48,8 +62,12 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:background="@drawable/rectangle"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
         android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:padding="10dp"
         android:orientation="horizontal" >
 
         <TextView
@@ -73,6 +91,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:cursorVisible="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:padding="10dp"
+        android:background="@drawable/rectangle"
         android:focusable="true"
         android:hint="Enter your Mobile Number"
         android:inputType="number" />
@@ -81,22 +104,34 @@
         android:id="@+id/email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:padding="10dp"
+        android:background="@drawable/rectangle"
         android:hint="Enter your EmailAddress"
         android:inputType="textEmailAddress" />
 
     <EditText
         android:id="@+id/password"
         android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:padding="10dp"
+        android:background="@drawable/rectangle"
         android:layout_height="wrap_content"
         android:hint="Enter your Password"
         android:inputType="textPassword" />
 
     <Button
         android:id="@+id/registerButton"
+        android:layout_marginTop="10dp"
+        android:padding="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:background="#064E88"
+        android:background="#16a085"
         android:text="Register" />
 
 </LinearLayout>

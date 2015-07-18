@@ -150,7 +150,7 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 					RegistrationStage.EMAIL);
 			requestHandler.execute(getHttpRegistrationGetRequest(
 					userToBeRegistered.getEmailId(),
-					RemoteDatabaseConfiguration.KEY_EMAIL_ID));
+					RemoteDatabaseConfiguration.KEY_USER_EMAIL_ID));
 
 			progressDialog = ProgressDialog.show(this, "Please Wait",
 					"We are registering you!!");
@@ -179,7 +179,7 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 	private HttpUriRequest getHttpRegistrationPostRequest(
 			User userToBeRegistered) {
 
-		HttpPost postRequest = new HttpPost(RemoteDatabaseConfiguration.URL);
+		HttpPost postRequest = new HttpPost(RemoteDatabaseConfiguration.USER_URL);
 		postRequest.setHeader("User-Agent",
 				RemoteDatabaseConfiguration.USER_AGENT);
 
@@ -198,7 +198,7 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 	private HttpUriRequest getHttpRegistrationGetRequest(String value,
 			String fieldId) {
 
-		HttpGet getRequest = new HttpGet(RemoteDatabaseConfiguration.URL
+		HttpGet getRequest = new HttpGet(RemoteDatabaseConfiguration.USER_URL
 				+ "&where=" + fieldId + ",eq," + value);
 		getRequest.setHeader("User-Agent",
 				RemoteDatabaseConfiguration.USER_AGENT);
@@ -211,28 +211,28 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 	List<NameValuePair> getUrlParameters(User userToBeRegistered) {
 		List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
 		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_NAME, userToBeRegistered
+				RemoteDatabaseConfiguration.KEY_USER_NAME, userToBeRegistered
 						.getName()));
 		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_BRANCH, userToBeRegistered
+				RemoteDatabaseConfiguration.KEY_USER_BRANCH, userToBeRegistered
 						.getBranch()));
 		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_ROLLNO, String
+				RemoteDatabaseConfiguration.KEY_USER_ROLLNO, String
 						.valueOf(userToBeRegistered.getRollNo())));
 		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_MOBILE_NO, String
+				RemoteDatabaseConfiguration.KEY_USER_MOBILE_NO, String
 						.valueOf(userToBeRegistered.getMobileNo())));
 		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_BATCH, String
+				RemoteDatabaseConfiguration.KEY_USER_BATCH, String
 						.valueOf(userToBeRegistered.getBatch())));
 		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_VOLUNTEERID, userToBeRegistered
+				RemoteDatabaseConfiguration.KEY_USER_VOLUNTEERID, userToBeRegistered
 						.getVolunteerId()));
 		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_EMAIL_ID, userToBeRegistered
+				RemoteDatabaseConfiguration.KEY_USER_EMAIL_ID, userToBeRegistered
 						.getEmailId()));
 		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_PASSWORD, userToBeRegistered
+				RemoteDatabaseConfiguration.KEY_USER_PASSWORD, userToBeRegistered
 						.getPassword()));
 		return urlParameters;
 	}
@@ -277,7 +277,7 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 								.execute(getHttpRegistrationGetRequest(
 										String.valueOf(userToBeRegistered
 												.getMobileNo()),
-										RemoteDatabaseConfiguration.KEY_MOBILE_NO));
+										RemoteDatabaseConfiguration.KEY_USER_MOBILE_NO));
 					}
 				} else {
 					progressDialog.dismiss();
@@ -297,7 +297,7 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 								this, RegistrationStage.VOLUNTEERID);
 						requestHandler.execute(getHttpRegistrationGetRequest(
 								userToBeRegistered.getVolunteerId(),
-								RemoteDatabaseConfiguration.KEY_VOLUNTEERID));
+								RemoteDatabaseConfiguration.KEY_USER_VOLUNTEERID));
 					}
 				} else {
 					progressDialog.dismiss();
@@ -373,13 +373,13 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 		try {
 			JSONObject data = (JSONObject) json.get("data");
 			registeredUser = new User(
-					data.getString(RemoteDatabaseConfiguration.KEY_NAME),
-					data.getInt(RemoteDatabaseConfiguration.KEY_ROLLNO),
-					data.getString(RemoteDatabaseConfiguration.KEY_EMAIL_ID),
-					data.getInt(RemoteDatabaseConfiguration.KEY_BATCH),
-					data.getString(RemoteDatabaseConfiguration.KEY_BRANCH),
-					data.getString(RemoteDatabaseConfiguration.KEY_PASSWORD),
-					data.getLong(RemoteDatabaseConfiguration.KEY_MOBILE_NO));
+					data.getString(RemoteDatabaseConfiguration.KEY_USER_NAME),
+					data.getInt(RemoteDatabaseConfiguration.KEY_USER_ROLLNO),
+					data.getString(RemoteDatabaseConfiguration.KEY_USER_EMAIL_ID),
+					data.getInt(RemoteDatabaseConfiguration.KEY_USER_BATCH),
+					data.getString(RemoteDatabaseConfiguration.KEY_USER_BRANCH),
+					data.getString(RemoteDatabaseConfiguration.KEY_USER_PASSWORD),
+					data.getLong(RemoteDatabaseConfiguration.KEY_USER_MOBILE_NO));
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}

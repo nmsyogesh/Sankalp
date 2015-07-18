@@ -4,6 +4,7 @@ import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
 import org.sankalpnitjamshedpur.tabs.TabPagerAdapter;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -23,6 +24,8 @@ public class HomePage extends ActionBarActivity implements
 	// Tab titles
 	private String[] tabs = { "Profile", "Take a Class", "Report a Issue",
 			"Class records" };
+
+	Dialog dialog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

@@ -16,12 +16,15 @@ import org.sankalpnitjamshedpur.R;
 import org.sankalpnitjamshedpur.adapter.ImageAdapter;
 import org.sankalpnitjamshedpur.db.DatabaseHandler;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
+import org.sankalpnitjamshedpur.helper.GPSTracker;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -32,12 +35,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class TakeClassFragment extends Fragment implements OnClickListener {
@@ -53,19 +53,23 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 
 	GridView gridView;
 	EditText editTextSubject, editTextMessage;
-	Button btnSend, btnAttachment, btnCapturePicture, centreOption;
-	ImageButton classFunctionButton;
+	Button btnCapturePicture, centreOption;
+	Button classFunctionButton;
 	String email, subject, message, attachmentFile;
 	Uri fileUri;
-	TextView directionView;
 	ArrayList<Uri> URIList = new ArrayList<Uri>();
 	private static final int PICK_FROM_GALLERY = 101;
 	int columnIndex;
+	GPSTracker gpsTracker;
+	Dialog gpsDialog;
+
+	Location startLocation;
+	Location endLocation;
 
 	boolean classAlreadyStarted = false;
 
 	String volunteerId;
-	int centreNo = 1;
+	int centreNo = 0;
 
 	long startTime, endTime;
 
@@ -75,44 +79,40 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		View android = inflater.inflate(R.layout.fragment_takeclass, container,
 				false);
 
+		gpsTracker = new GPSTracker(android.getContext());
 		dbHandler = new DatabaseHandler(android.getContext());
 		volunteerId = SharedPreferencesKey.getStringFromSharedPreferences(
 				SharedPreferencesKey.KEY_VOLUNTEERID, "", android.getContext());
-
-		if (savedInstanceState != null) {
-			fileUri = savedInstanceState.getParcelable("file_uri");
-		}
 
 		gridView = (GridView) android.findViewById(R.id.previewPane);
 
 		editTextSubject = (EditText) android.findViewById(R.id.editTextSubject);
 		editTextMessage = (EditText) android.findViewById(R.id.editTextMessage);
-		btnAttachment = (Button) android.findViewById(R.id.buttonAttachment);
-		btnSend = (Button) android.findViewById(R.id.buttonSend);
 		centreOption = (Button) android.findViewById(R.id.centreOption);
-		// TODO
-		btnSend.setEnabled(false);
-		btnAttachment.setEnabled(false);
-		directionView = (TextView) android.findViewById(R.id.directionView);
 
-		classFunctionButton = (ImageButton) android
+		classFunctionButton = (Button) android
 				.findViewById(R.id.buttonClassFunction);
-
-		if (classAlreadyStarted) {
-			classFunctionButton.setImageResource(R.drawable.stop);
-			directionView.setText("Press to stop the class!!");
-		} else {
-			classFunctionButton.setImageResource(R.drawable.start);
-			directionView.setText("Press to start the class!!");
-		}
 
 		btnCapturePicture = (Button) android
 				.findViewById(R.id.btnCapturePicture);
-		btnSend.setOnClickListener(this);
-		btnAttachment.setOnClickListener(this);
 		btnCapturePicture.setOnClickListener(this);
 		classFunctionButton.setOnClickListener(this);
 		centreOption.setOnClickListener(this);
+
+		if (savedInstanceState != null) {
+			fileUri = savedInstanceState.getParcelable("file_uri");
+		}
+
+		if (!classAlreadyStarted) {
+			classFunctionButton.setText("Start the class!!");
+			disableFields();
+		} else {
+			classFunctionButton.setText("Stop the class!!");
+			enableFields();
+		}
+		if (centreNo != 0) {
+			centreOption.setText("Centre: " + centreNo);
+		}
 
 		if (!doesDeviceSupportCamera()) {
 			Toast.makeText(getActivity().getApplicationContext(),
@@ -122,16 +122,6 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		}
 		Log.e(attachmentFile, "Device supports camera");
 		return android;
-	}
-
-	ArrayAdapter<CharSequence> getBatchArrayAdater() {
-		ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter
-				.createFromResource(getActivity().getApplicationContext(),
-						R.array.centre_array,
-						android.R.layout.simple_spinner_item);
-		staticAdapter
-				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		return staticAdapter;
 	}
 
 	/**
@@ -178,74 +168,88 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		}
 	}
 
+	void disableFields() {
+		btnCapturePicture.setVisibility(View.INVISIBLE);
+		centreOption.setVisibility(View.INVISIBLE);
+		editTextMessage.setVisibility(View.INVISIBLE);
+		editTextSubject.setVisibility(View.INVISIBLE);
+
+	}
+
+	void enableFields() {
+		btnCapturePicture.setVisibility(View.VISIBLE);
+		centreOption.setVisibility(View.VISIBLE);
+		editTextMessage.setVisibility(View.VISIBLE);
+		editTextSubject.setVisibility(View.VISIBLE);
+	}
+
 	@Override
 	public void onClick(View v) {
-		if (v == btnAttachment) {
-			openGallery();
-		}
-		if (v == btnSend) {
-			try {
-
-				subject = editTextSubject.getText().toString();
-				message = editTextMessage.getText().toString();
-
-				final Intent emailIntent = new Intent(
-						android.content.Intent.ACTION_SEND_MULTIPLE);
-				emailIntent.setType("text/plain");
-
-				// Here string array is passes for more than one email
-				// addresses.
-				emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
-						new String[] { email });
-				emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT,
-						subject);
-
-				ArrayList<String> extra_text = new ArrayList<String>();
-				extra_text.add(message);
-				emailIntent.putStringArrayListExtra(
-						android.content.Intent.EXTRA_TEXT, extra_text);
-
-				/*
-				 * // Attaching more than one files. if (URIList.size() != 0)
-				 * emailIntent.putParcelableArrayListExtra( Intent.EXTRA_STREAM,
-				 * URIList);
-				 */
-
-				emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM,
-						getCompressedUri(URIList));
-
-				this.startActivity(Intent.createChooser(emailIntent,
-						"Sending email..."));
-				Toast.makeText(getActivity().getApplicationContext(),
-						"Sending....", Toast.LENGTH_LONG).show();
-
-			} catch (Throwable t) {
-				Toast.makeText(getActivity().getApplicationContext(),
-						"Request failed try again: " + t.toString(),
-						Toast.LENGTH_LONG).show();
-			}
-		}
 		if (v == btnCapturePicture) {
 			Log.i(attachmentFile, "taking pic");
 			captureImage();
 		}
 
 		if (v == classFunctionButton && !classAlreadyStarted) {
+			if (!gpsTracker.canGetLocation()) {
+				gpsTracker.showSettingsAlert();
+				return;
+			}
 			startTime = Calendar.getInstance().getTimeInMillis();
-			classFunctionButton.setImageResource(R.drawable.stop);
-			directionView.setText("Press to stop the class!!");
+			classFunctionButton.setText("Stop the class!!");
 			classAlreadyStarted = true;
+			startLocation = gpsTracker.getLocation();
+			if (startLocation != null) {
+				Toast.makeText(
+						getActivity().getApplicationContext(),
+						"Location determined" + "\n"
+								+ startLocation.getLatitude() + "\n"
+								+ startLocation.getLongitude(),
+						Toast.LENGTH_SHORT).show();
+			} else {
+				Toast.makeText(getActivity().getApplicationContext(),
+						"Location Null", Toast.LENGTH_SHORT).show();
+			}
+			centreOption.setText("Select Centre");
+			enableFields();
 		} else if (v == classFunctionButton && classAlreadyStarted) {
+			if (centreNo == 0) {
+				centreOption.setError("Please select Centre");
+				return;
+			}
+			if (!gpsTracker.canGetLocation()) {
+				gpsTracker.showSettingsAlert();
+				return;
+			}
 			endTime = Calendar.getInstance().getTimeInMillis();
-			classFunctionButton.setImageResource(R.drawable.start);
+			classFunctionButton.setText("Start the class!!");
 			classAlreadyStarted = false;
-			directionView.setText("Press to start the class!!");
+			endLocation = gpsTracker.getLocation();
+			if (endLocation != null) {
+				Toast.makeText(
+						getActivity().getApplicationContext(),
+						"Location determined" + "\n"
+								+ endLocation.getLatitude() + "\n"
+								+ endLocation.getLongitude(),
+						Toast.LENGTH_SHORT).show();
+			} else {
+				Toast.makeText(getActivity().getApplicationContext(),
+						"Location Null", Toast.LENGTH_SHORT).show();
+			}
+
 			dbHandler.addClassRecord(new ClassRecord(URIList, startTime,
-					endTime, volunteerId, centreNo));
+					endTime, volunteerId, centreNo,
+					startLocation.getLatitude(), startLocation.getLongitude(),
+					endLocation.getLatitude(), endLocation.getLongitude()));
 			URIList.clear();
+			disableFields();
+			startLocation = null;
+			endLocation = null;
+			centreNo = 0;
 		}
 
 		if (v == centreOption) {
+			centreOption.setError(null);
 			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
 					getActivity());
 
@@ -258,8 +262,9 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							dialog.dismiss();
-							centreNo = 1 + ((AlertDialog) dialog)
-									.getListView().getCheckedItemPosition();
+							centreNo = 1 + ((AlertDialog) dialog).getListView()
+									.getCheckedItemPosition();
+							centreOption.setText("Centre: " + centreNo);
 						}
 					});
 
@@ -417,5 +422,16 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		}
 
 		return mediaFile;
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		if (gpsDialog != null)
+			gpsDialog.cancel();
+
+		if (!gpsTracker.canGetLocation()) {
+			gpsDialog = gpsTracker.showSettingsAlert();
+		}
 	}
 }
