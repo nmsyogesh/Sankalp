@@ -23,10 +23,16 @@
 
     <application
         android:allowBackup="true"
-        android:screenOrientation="portrait"
         android:icon="@drawable/logo"
         android:label="@string/app_name"
+        android:screenOrientation="portrait"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar" >
+        <receiver android:name="org.sankalpnitjamshedpur.helper.NetworkStatusChangeReceiver" >
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name="org.sankalpnitjamshedpur.StartActivity"
             android:label="@string/app_name" >

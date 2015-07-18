@@ -27,6 +27,7 @@ import org.sankalpnitjamshedpur.R;
 import org.sankalpnitjamshedpur.db.DatabaseHandler;
 import org.sankalpnitjamshedpur.db.RemoteDatabaseConfiguration;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
+import org.sankalpnitjamshedpur.helper.NetworkStatusChangeReceiver;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -64,7 +65,7 @@ public class ClassRecordsFragment extends Fragment {
 		return android;
 	}
 
-	void populateView() {
+	public void populateView() {
 		ScrollView mainScrollView = (ScrollView) android
 				.findViewById(R.id.mainLayout);
 		mainScrollView.removeAllViews();
@@ -119,22 +120,11 @@ public class ClassRecordsFragment extends Fragment {
 				+ ":"
 				+ String.format("%02d", classCalendar.get(Calendar.SECOND))
 				+ ")" + "\n" + "Centre: "
-				+ String.valueOf(classRecord.getCentreNo())
-				);
+				+ String.valueOf(classRecord.getCentreNo()));
 
 		tv.setGravity(Gravity.CENTER_HORIZONTAL);
 		tv.setPadding(13, 10, 13, 10);
 		tv.setBackgroundResource(R.drawable.rectangle);
-
-		LinearLayout footerLinearLayout = new LinearLayout(context);
-		footerLinearLayout.setOrientation(LinearLayout.HORIZONTAL);
-
-		/*
-		 * Button sendMail = new Button(context);
-		 * sendMail.setOnClickListener(new CustomSendMailListener(classRecord
-		 * .getStartTime())); sendMail.setText("Send Report");
-		 * sendMail.setGravity(Gravity.LEFT);
-		 */
 
 		ImageView deleteImage = new ImageView(context);
 		deleteImage.setClickable(true);
@@ -150,29 +140,24 @@ public class ClassRecordsFragment extends Fragment {
 		sendMail.setBackgroundResource(R.drawable.rectangle);
 		sendMail.setImageResource(R.drawable.sendmail);
 		sendMail.setPadding(13, 10, 13, 10);
+		
+		ImageView notification = new ImageView(context);
+		notification.setClickable(false);
+		notification.setImageResource(R.drawable.done);
+		if(!classRecord.isSentNotification()) {
+			notification.setVisibility(View.INVISIBLE);
+		}
 
 		wrappedLp.setMargins(10, 10, 10, 10);
 
 		headerLinearLayout.addView(deleteImage, wrappedLp);
 		headerLinearLayout.addView(tv, wrappedLp);
 		headerLinearLayout.addView(sendMail, wrappedLp);
+		headerLinearLayout.addView(notification);
+		
 		headerLinearLayout.setGravity(Gravity.CENTER);
 
-		/*
-		 * Bitmap bmp; bmp = BitmapFactory.decodeResource(getResources(),
-		 * R.drawable.cancel); bmp = Bitmap.createScaledBitmap(bmp, 100, 100,
-		 * true); deleteImage.setImageBitmap(bmp);
-		 * deleteImage.setScaleType(ScaleType.FIT_CENTER);
-		 */
-		// footerLinearLayout.addView(sendMail, wrappedLp);
-
-		// extendedLp.setMargins(18, 8, 3, 3);
-		// wrappedLp.gravity = Gravity.RIGHT;
-
-		// footerLinearLayout.addView(deleteImage, extendedLp);
-
 		mainLinearLayout.addView(headerLinearLayout, wrappedLp);
-		// mainLinearLayout.addView(footerLinearLayout, extendedLp);
 		mainLinearLayout.setPadding(5, 5, 5, 5);
 		mainLinearLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 		return mainLinearLayout;
@@ -218,7 +203,7 @@ public class ClassRecordsFragment extends Fragment {
 		}
 	}
 
-	private class CustomSendMailListener implements OnClickListener {
+	public class CustomSendMailListener implements OnClickListener {
 
 		ClassRecord classRecord;
 
@@ -230,15 +215,29 @@ public class ClassRecordsFragment extends Fragment {
 		public void onClick(View v) {
 			CreateReportMail createReportMailHelper = new CreateReportMail(
 					classRecord.getStartTime(), context);
-			if(!classRecord.isSentNotification()) {
-				HttpRecordRequestHandler requestHandler = new HttpRecordRequestHandler(
-						classRecord);
-				requestHandler.execute(getHttpRecordPostRequest(classRecord));				
+			if (!classRecord.isSentNotification()) {
+				if (NetworkStatusChangeReceiver.isConnected(context)) {
+					HttpRecordRequestHandler requestHandler = new HttpRecordRequestHandler(
+							classRecord);
+					requestHandler
+							.execute(getHttpRecordPostRequest(classRecord));
+					Toast.makeText(context, "Posting Record Now",
+							Toast.LENGTH_SHORT).show();
+				} else {
+					NetworkStatusChangeReceiver.addClassRecord(classRecord);
+					NetworkStatusChangeReceiver.setNotifyListener(this);
+					Toast.makeText(context, "Added post request to queue",
+							Toast.LENGTH_SHORT).show();
+				}
 			}
 			createReportMailHelper.sendMail();
 		}
+		
+		public void notifyView() {
+			populateView();
+		}
 
-		private HttpUriRequest getHttpRecordPostRequest(ClassRecord classRecord) {
+		public HttpUriRequest getHttpRecordPostRequest(ClassRecord classRecord) {
 			HttpPost postRequest = new HttpPost(
 					RemoteDatabaseConfiguration.RECORD_URL);
 			postRequest.setHeader("User-Agent",
@@ -339,14 +338,15 @@ public class ClassRecordsFragment extends Fragment {
 				BufferedReader rd;
 				try {
 					rd = new BufferedReader(new InputStreamReader(response
-								.getEntity().getContent()));
+							.getEntity().getContent()));
 					String line = "";
 					while ((line = rd.readLine()) != null) {
 						result.append(line);
 					}
 					JSONObject mainJsonObj = new JSONObject(result.toString());
 					if (mainJsonObj.get("status").equals("SUCCESS")) {
-						dbHandler.markClassRecordNotification(classRecord.getStartTime());
+						dbHandler.markClassRecordNotification(classRecord
+								.getStartTime());
 						populateView();
 					}
 				} catch (IllegalStateException e) {

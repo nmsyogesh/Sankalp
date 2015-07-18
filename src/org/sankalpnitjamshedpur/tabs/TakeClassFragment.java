@@ -195,23 +195,52 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 				gpsTracker.showSettingsAlert();
 				return;
 			}
-			startTime = Calendar.getInstance().getTimeInMillis();
-			classFunctionButton.setText("Stop the class!!");
-			classAlreadyStarted = true;
-			startLocation = gpsTracker.getLocation();
-			if (startLocation != null) {
-				Toast.makeText(
-						getActivity().getApplicationContext(),
-						"Location determined" + "\n"
-								+ startLocation.getLatitude() + "\n"
-								+ startLocation.getLongitude(),
-						Toast.LENGTH_SHORT).show();
-			} else {
-				Toast.makeText(getActivity().getApplicationContext(),
-						"Location Null", Toast.LENGTH_SHORT).show();
-			}
-			centreOption.setText("Select Centre");
-			enableFields();
+			AlertDialog.Builder alertDialog = new AlertDialog.Builder(
+					getActivity());
+
+			// Setting Dialog Title
+			alertDialog.setTitle("Start Class...");
+
+			alertDialog.setMessage("Do you wanna start!!");
+
+			alertDialog.setPositiveButton("Start",
+					new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.cancel();
+							startTime = Calendar.getInstance()
+									.getTimeInMillis();
+							classFunctionButton.setText("Stop the class!!");
+							classAlreadyStarted = true;
+							startLocation = gpsTracker.getLocation();
+							if (startLocation != null) {
+								Toast.makeText(
+										getActivity().getApplicationContext(),
+										"Location determined" + "\n"
+												+ startLocation.getLatitude()
+												+ "\n"
+												+ startLocation.getLongitude(),
+										Toast.LENGTH_SHORT).show();
+							} else {
+								Toast.makeText(
+										getActivity().getApplicationContext(),
+										"Location Null", Toast.LENGTH_SHORT)
+										.show();
+							}
+							centreOption.setText("Select Centre");
+							enableFields();
+						}
+					});
+
+			alertDialog.setNegativeButton("Cancel",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.cancel();
+						}
+					});
+
+			alertDialog.show();
+
 		} else if (v == classFunctionButton && classAlreadyStarted) {
 			if (centreNo == 0) {
 				centreOption.setError("Please select Centre");
@@ -221,31 +250,55 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 				gpsTracker.showSettingsAlert();
 				return;
 			}
-			endTime = Calendar.getInstance().getTimeInMillis();
-			classFunctionButton.setText("Start the class!!");
-			classAlreadyStarted = false;
-			endLocation = gpsTracker.getLocation();
-			if (endLocation != null) {
-				Toast.makeText(
-						getActivity().getApplicationContext(),
-						"Location determined" + "\n"
-								+ endLocation.getLatitude() + "\n"
-								+ endLocation.getLongitude(),
-						Toast.LENGTH_SHORT).show();
-			} else {
-				Toast.makeText(getActivity().getApplicationContext(),
-						"Location Null", Toast.LENGTH_SHORT).show();
-			}
+			AlertDialog.Builder alertDialog = new AlertDialog.Builder(
+					getActivity());
 
-			dbHandler.addClassRecord(new ClassRecord(URIList, startTime,
-					endTime, volunteerId, centreNo,
-					startLocation.getLatitude(), startLocation.getLongitude(),
-					endLocation.getLatitude(), endLocation.getLongitude()));
-			URIList.clear();
-			disableFields();
-			startLocation = null;
-			endLocation = null;
-			centreNo = 0;
+			// Setting Dialog Title
+			alertDialog.setTitle("Stop Class...");
+
+			alertDialog.setMessage("Do you wanna stop the class!!");
+
+			alertDialog.setPositiveButton("Stop",
+					new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.cancel();
+							endTime = Calendar.getInstance().getTimeInMillis();
+							classFunctionButton.setText("Start the class!!");
+							classAlreadyStarted = false;
+							endLocation = gpsTracker.getLocation();
+							if (endLocation != null) {
+								Toast.makeText(
+										getActivity().getApplicationContext(),
+										"Location determined" + "\n"
+												+ endLocation.getLatitude() + "\n"
+												+ endLocation.getLongitude(),
+										Toast.LENGTH_SHORT).show();
+							} else {
+								Toast.makeText(getActivity().getApplicationContext(),
+										"Location Null", Toast.LENGTH_SHORT).show();
+							}
+
+							dbHandler.addClassRecord(new ClassRecord(URIList, startTime,
+									endTime, volunteerId, centreNo,
+									startLocation.getLatitude(), startLocation.getLongitude(),
+									endLocation.getLatitude(), endLocation.getLongitude()));
+							URIList.clear();
+							disableFields();
+							startLocation = null;
+							endLocation = null;
+							centreNo = 0;
+						}
+					});
+
+			alertDialog.setNegativeButton("Cancel",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.cancel();
+						}
+					});
+
+			alertDialog.show();
 		}
 
 		if (v == centreOption) {
