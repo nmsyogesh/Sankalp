@@ -1,38 +1,17 @@
 package org.sankalpnitjamshedpur.tabs;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.sankalpnitjamshedpur.CreateReportMail;
 import org.sankalpnitjamshedpur.R;
 import org.sankalpnitjamshedpur.db.DatabaseHandler;
-import org.sankalpnitjamshedpur.db.RemoteDatabaseConfiguration;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
 import org.sankalpnitjamshedpur.helper.NetworkStatusChangeReceiver;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.Gravity;
@@ -40,6 +19,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -52,14 +32,16 @@ public class ClassRecordsFragment extends Fragment {
 	View android;
 	Context context;
 	DatabaseHandler dbHandler;
+	public NetworkStatusChangeReceiver networkStatusChangeReceiver;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-
+			Bundle savedInstanceState) {		
 		android = inflater.inflate(R.layout.fragment_class_records, container,
 				false);
-		context = android.getContext();
+		context = android.getContext();		
+		networkStatusChangeReceiver = new NetworkStatusChangeReceiver(context,
+				this);
 		dbHandler = new DatabaseHandler(context);
 		populateView();
 		return android;
@@ -85,18 +67,17 @@ public class ClassRecordsFragment extends Fragment {
 		}
 
 		for (ClassRecord record : classRecords) {
-			mainLayout.addView(getLinearLayout(record));
+			LinearLayout.LayoutParams wrappedLp = new LayoutParams(
+					LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+			wrappedLp.setMargins(0, 10, 0, 10);
+			mainLayout.addView(getLinearLayout(record), wrappedLp);
 		}
+		mainLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 		mainScrollView.addView(mainLayout, lp);
 	}
 
 	LinearLayout getLinearLayout(ClassRecord classRecord) {
 
-		LinearLayout mainLinearLayout = new LinearLayout(context);
-		mainLinearLayout.setOrientation(LinearLayout.VERTICAL);
-
-		LinearLayout.LayoutParams extendedLp = new LayoutParams(
-				LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
 		LinearLayout.LayoutParams wrappedLp = new LayoutParams(
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
@@ -129,38 +110,41 @@ public class ClassRecordsFragment extends Fragment {
 		ImageView deleteImage = new ImageView(context);
 		deleteImage.setClickable(true);
 		deleteImage.setOnClickListener(new CustomOnClickDeleteListener(
-				classRecord.getStartTime()));
-		deleteImage.setBackgroundResource(R.drawable.rectangle);
+				classRecord.getStartTime()));		
 		deleteImage.setImageResource(R.drawable.cancel);
+		deleteImage.setBackgroundResource(R.drawable.rectangle);
 		deleteImage.setPadding(13, 10, 13, 10);
 
 		ImageView sendMail = new ImageView(context);
 		sendMail.setClickable(true);
-		sendMail.setOnClickListener(new CustomSendMailListener(classRecord));
-		sendMail.setBackgroundResource(R.drawable.rectangle);
+		sendMail.setOnClickListener(new CustomSendMailListener(classRecord));		
 		sendMail.setImageResource(R.drawable.sendmail);
+		sendMail.setBackgroundResource(R.drawable.rectangle);
 		sendMail.setPadding(13, 10, 13, 10);
-		
+
 		ImageView notification = new ImageView(context);
 		notification.setClickable(false);
 		notification.setImageResource(R.drawable.done);
-		if(!classRecord.isSentNotification()) {
+		if (!classRecord.isSentNotification()) {
 			notification.setVisibility(View.INVISIBLE);
 		}
 
-		wrappedLp.setMargins(10, 10, 10, 10);
-
-		headerLinearLayout.addView(deleteImage, wrappedLp);
-		headerLinearLayout.addView(tv, wrappedLp);
-		headerLinearLayout.addView(sendMail, wrappedLp);
-		headerLinearLayout.addView(notification);
+		headerLinearLayout.addView(deleteImage);
 		
-		headerLinearLayout.setGravity(Gravity.CENTER);
+		wrappedLp.setMargins(10, 10, 10, 10);
+		headerLinearLayout.addView(tv, wrappedLp);
+		
+		wrappedLp.setMargins(10, 10, 0, 10);
+		headerLinearLayout.addView(sendMail, wrappedLp);
+		
+		headerLinearLayout.addView(notification);
 
-		mainLinearLayout.addView(headerLinearLayout, wrappedLp);
-		mainLinearLayout.setPadding(5, 5, 5, 5);
-		mainLinearLayout.setGravity(Gravity.CENTER_HORIZONTAL);
-		return mainLinearLayout;
+		headerLinearLayout.setGravity(Gravity.CENTER);
+		return headerLinearLayout;
+	}
+
+	public void notifyView() {
+		populateView();
 	}
 
 	private class CustomOnClickDeleteListener implements OnClickListener {
@@ -206,6 +190,7 @@ public class ClassRecordsFragment extends Fragment {
 	public class CustomSendMailListener implements OnClickListener {
 
 		ClassRecord classRecord;
+		String comment="";
 
 		public CustomSendMailListener(ClassRecord classRecord) {
 			this.classRecord = classRecord;
@@ -213,154 +198,41 @@ public class ClassRecordsFragment extends Fragment {
 
 		@Override
 		public void onClick(View v) {
-			CreateReportMail createReportMailHelper = new CreateReportMail(
-					classRecord.getStartTime(), context);
+			
 			if (!classRecord.isSentNotification()) {
-				if (NetworkStatusChangeReceiver.isConnected(context)) {
-					HttpRecordRequestHandler requestHandler = new HttpRecordRequestHandler(
-							classRecord);
-					requestHandler
-							.execute(getHttpRecordPostRequest(classRecord));
-					Toast.makeText(context, "Posting Record Now",
-							Toast.LENGTH_SHORT).show();
-				} else {
-					NetworkStatusChangeReceiver.addClassRecord(classRecord);
-					NetworkStatusChangeReceiver.setNotifyListener(this);
-					Toast.makeText(context, "Added post request to queue",
-							Toast.LENGTH_SHORT).show();
-				}
+				networkStatusChangeReceiver.addClassRecord(classRecord);
+				networkStatusChangeReceiver.processRequests();
+				Toast.makeText(context, "Added post request to queue",
+						Toast.LENGTH_SHORT).show();
 			}
-			createReportMailHelper.sendMail();
+			AlertDialog.Builder alert = new AlertDialog.Builder(context);
+
+			alert.setTitle("Generating Report");
+			alert.setMessage("Do you want to add a comment before Sending");
+
+			// Set an EditText view to get user input 
+			final EditText input = new EditText(context);
+			alert.setView(input);		
+
+			alert.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+				comment = input.getText().toString();
+				CreateReportMail createReportMailHelper = new CreateReportMail(
+						classRecord.getStartTime(), context, comment);
+				createReportMailHelper.sendMail();
+			  }
+			});
+
+			alert.setNegativeButton("No Thanks!!", new DialogInterface.OnClickListener() {
+			  public void onClick(DialogInterface dialog, int whichButton) {
+				  CreateReportMail createReportMailHelper = new CreateReportMail(
+							classRecord.getStartTime(), context, comment);
+				  createReportMailHelper.sendMail();
+			  }
+			});			
+			
+			alert.show();
+			
 		}
-		
-		public void notifyView() {
-			populateView();
-		}
-
-		public HttpUriRequest getHttpRecordPostRequest(ClassRecord classRecord) {
-			HttpPost postRequest = new HttpPost(
-					RemoteDatabaseConfiguration.RECORD_URL);
-			postRequest.setHeader("User-Agent",
-					RemoteDatabaseConfiguration.USER_AGENT);
-
-			try {
-				postRequest.setEntity(new UrlEncodedFormEntity(
-						getRecordParameters(classRecord)));
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-			postRequest.setHeader("Authorization",
-					RemoteDatabaseConfiguration.getApiKey());
-
-			return postRequest;
-		}
-
-		List<NameValuePair> getRecordParameters(ClassRecord classRecord) {
-			List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-			urlParameters.add(new BasicNameValuePair(
-					RemoteDatabaseConfiguration.KEY_RECORD_CENTRE_NO, String
-							.valueOf(classRecord.getCentreNo())));
-			urlParameters.add(new BasicNameValuePair(
-					RemoteDatabaseConfiguration.KEY_RECORD_VOLUNTEERID,
-					classRecord.getVolunteerId()));
-
-			long duration = classRecord.getEndTime()
-					- classRecord.getStartTime();
-
-			Date date = new Date(classRecord.getStartTime());
-			urlParameters.add(new BasicNameValuePair(
-					RemoteDatabaseConfiguration.KEY_RECORD_START_TIME,
-					new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(date)));
-			date = new Date(classRecord.getEndTime());
-			urlParameters.add(new BasicNameValuePair(
-					RemoteDatabaseConfiguration.KEY_RECORD_END_TIME,
-					new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(date)));
-			date = new Date(duration);
-			String durationString = String.format("%02d:%02d:%02d",
-					TimeUnit.MILLISECONDS.toHours(duration),
-					TimeUnit.MILLISECONDS.toMinutes(duration),
-					TimeUnit.MILLISECONDS.toSeconds(duration));
-			urlParameters.add(new BasicNameValuePair(
-					RemoteDatabaseConfiguration.KEY_RECORD_DURATION,
-					durationString));
-
-			urlParameters.add(new BasicNameValuePair(
-					RemoteDatabaseConfiguration.KEY_RECORD_START_LATITUDE,
-					String.valueOf(classRecord.getStartGpsLatitude())));
-			urlParameters.add(new BasicNameValuePair(
-					RemoteDatabaseConfiguration.KEY_RECORD_START_LONGITUDE,
-					String.valueOf(classRecord.getStartGpsLongitude())));
-			urlParameters.add(new BasicNameValuePair(
-					RemoteDatabaseConfiguration.KEY_RECORD_END_LATITUDE, String
-							.valueOf(classRecord.getEndGpsLatitude())));
-			urlParameters.add(new BasicNameValuePair(
-					RemoteDatabaseConfiguration.KEY_RECORD_END_LONGITUDE,
-					String.valueOf(classRecord.getEndGpsLongitude())));
-
-			return urlParameters;
-		}
-	}
-
-	private class HttpRecordRequestHandler extends
-			AsyncTask<HttpUriRequest, String, HttpResponse> {
-
-		ClassRecord classRecord;
-
-		public HttpRecordRequestHandler(ClassRecord classRecord) {
-			super();
-			this.classRecord = classRecord;
-		}
-
-		@Override
-		protected HttpResponse doInBackground(HttpUriRequest... httprequests) {
-			HttpUriRequest httpRequest = httprequests[0];
-			HttpClient client = new DefaultHttpClient();
-
-			try {
-				HttpResponse response = client.execute(httpRequest);
-				if (response.getEntity() != null)
-					return response;
-			} catch (ClientProtocolException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			return null;
-		}
-
-		protected void onPostExecute(HttpResponse response) {
-			// Mark the report sent in the db by record
-			if (response != null
-					&& response.getStatusLine().getStatusCode() == 200) {
-				Toast.makeText(context, "Posted success", Toast.LENGTH_SHORT)
-						.show();
-				StringBuffer result = new StringBuffer();
-				BufferedReader rd;
-				try {
-					rd = new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent()));
-					String line = "";
-					while ((line = rd.readLine()) != null) {
-						result.append(line);
-					}
-					JSONObject mainJsonObj = new JSONObject(result.toString());
-					if (mainJsonObj.get("status").equals("SUCCESS")) {
-						dbHandler.markClassRecordNotification(classRecord
-								.getStartTime());
-						populateView();
-					}
-				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-
 	}
 }

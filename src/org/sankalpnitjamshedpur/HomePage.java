@@ -37,9 +37,7 @@ public class HomePage extends ActionBarActivity implements
 		viewPager.setAdapter(tabPagerAdapter);
 
 		actionBar = getSupportActionBar();
-		actionBar.setDisplayHomeAsUpEnabled(true);
-		actionBar.setIcon(R.drawable.logo);
-
+		
 		// Enable Tabs on Action Bar
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 

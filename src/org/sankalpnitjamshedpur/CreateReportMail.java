@@ -27,11 +27,13 @@ public class CreateReportMail {
 	ClassRecord classRecord;
 	DatabaseHandler dBHandler;
 	Context context;
+	String mailBody;
 
-	public CreateReportMail(long startTime, Context context) {
+	public CreateReportMail(long startTime, Context context, String mainText) {
 		super();
 		this.startTime = startTime;
 		this.context = context;
+		this.mailBody = mainText;
 	}
 
 	public void sendMail() {
@@ -50,33 +52,35 @@ public class CreateReportMail {
 			// addresses.
 			emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
 					new String[] { address });
+
 			emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT,
-					"Class Report VolunteerId: " + classRecord.getVolunteerId()
-							+ " at " + classCalender.get(Calendar.DAY_OF_MONTH)
-							+ "-" + classCalender.get(Calendar.MONTH) + "-"
+					"Class Report of " + classRecord.getVolunteerId() + " at "
+							+ classCalender.get(Calendar.DAY_OF_MONTH) + "-"
+							+ classCalender.get(Calendar.MONTH) + "-"
 							+ classCalender.get(Calendar.YEAR));
 
-			ArrayList<String> extra_text = new ArrayList<String>();
-			extra_text.add("No content in Message");
-			emailIntent.putStringArrayListExtra(
-					android.content.Intent.EXTRA_TEXT, extra_text);
-
-			/*
-			 * // Attaching more than one files. if (URIList.size() != 0)
-			 * emailIntent.putParcelableArrayListExtra( Intent.EXTRA_STREAM,
-			 * URIList);
-			 */
-
-			if(classRecord.getUriList() != null && classRecord.getUriList().size()!=0)
+			if (mailBody == null || mailBody.isEmpty()
+					|| mailBody.trim().isEmpty()) {
+				emailIntent.putExtra(android.content.Intent.EXTRA_TEXT,
+						"No content in Message");
+			} else {
+				emailIntent.putExtra(android.content.Intent.EXTRA_TEXT,
+						mailBody);
+			}
+			
+			if (classRecord.getUriList() != null
+					&& classRecord.getUriList().size() != 0)
 				emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM,
-					getCompressedUri(classRecord.getUriList()));
+						getCompressedUri(classRecord.getUriList()));
 
 			context.startActivity(Intent.createChooser(emailIntent,
 					"Sending email.."));
-			Toast.makeText(context, "Sending....", Toast.LENGTH_LONG).show();
+			Toast.makeText(context, "Generating Mail Report !!",
+					Toast.LENGTH_LONG).show();
 
 		} catch (Throwable t) {
-			Toast.makeText(context, "Request failed try again: " + t.toString(),
+			Toast.makeText(context,
+					"Request failed try again: " + t.toString(),
 					Toast.LENGTH_LONG).show();
 		}
 	}
@@ -102,7 +106,7 @@ public class CreateReportMail {
 			// COMP_DEFLATE is for compression
 			// COMp_STORE no compression
 			parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
-			
+
 			// DEFLATE_LEVEL_ULTRA = maximum compression
 			// DEFLATE_LEVEL_MAXIMUM
 			// DEFLATE_LEVEL_NORMAL = normal compression
@@ -117,7 +121,7 @@ public class CreateReportMail {
 
 			for (Uri uri : uriList) {
 				File inputFileH = new File(uri.getPath());
-				if(inputFileH!= null)
+				if (inputFileH != null)
 					filesToAdd.add(inputFileH);
 			}
 

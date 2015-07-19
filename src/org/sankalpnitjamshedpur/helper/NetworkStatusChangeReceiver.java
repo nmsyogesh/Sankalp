@@ -24,7 +24,7 @@ import org.json.JSONObject;
 import org.sankalpnitjamshedpur.db.DatabaseHandler;
 import org.sankalpnitjamshedpur.db.RemoteDatabaseConfiguration;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
-import org.sankalpnitjamshedpur.tabs.ClassRecordsFragment.CustomSendMailListener;
+import org.sankalpnitjamshedpur.tabs.ClassRecordsFragment;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -36,12 +36,26 @@ import android.widget.Toast;
 
 public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 
-	public static List<ClassRecord> classRecords = new ArrayList<ClassRecord>();
-	public static Context context;
-	public static DatabaseHandler dbHandler;
-	public static CustomSendMailListener notifyListener;
+	public List<ClassRecord> classRecords = new ArrayList<ClassRecord>();
+	public Context context;
+	public DatabaseHandler dbHandler;
+	public ClassRecordsFragment notifyListener;
+
+	public NetworkStatusChangeReceiver(Context context, ClassRecordsFragment notifyListener) {
+		this.context = context;
+		this.notifyListener = notifyListener;
+		dbHandler = new DatabaseHandler(context);
+	}
 	
-	public static void addClassRecord(ClassRecord classRecord) {
+	public NetworkStatusChangeReceiver() {
+		super();
+	}
+
+	public void setContext(Context context) {
+		this.context = context;
+	}
+
+	public void addClassRecord(ClassRecord classRecord) {
 		if (!classRecords.contains(classRecord)) {
 			classRecords.add(classRecord);
 		}
@@ -49,8 +63,11 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		NetworkStatusChangeReceiver.context = context;
-		dbHandler = new DatabaseHandler(context);
+		this.context = context;
+		processRequests();
+	}
+
+	public void processRequests() {
 		if (isConnected(context)) {
 			for (ClassRecord classRecord : classRecords) {
 				HttpRecordRequestHandler requestHandler = new HttpRecordRequestHandler(
@@ -60,7 +77,19 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 		}
 	}
 
-	public HttpUriRequest getHttpRecordPostRequest(ClassRecord classRecord) {
+	public boolean isConnected(Context context) {
+		ConnectivityManager cm = (ConnectivityManager) context
+				.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo netInfo = cm.getActiveNetworkInfo();
+		return (netInfo != null && netInfo.isConnected());
+	}
+
+	public void setNotifyListener(ClassRecordsFragment notifyListener) {
+		this.notifyListener = notifyListener;
+	}
+
+	public static HttpUriRequest getHttpRecordPostRequest(
+			ClassRecord classRecord) {
 		HttpPost postRequest = new HttpPost(
 				RemoteDatabaseConfiguration.RECORD_URL);
 		postRequest.setHeader("User-Agent",
@@ -78,7 +107,7 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 		return postRequest;
 	}
 
-	List<NameValuePair> getRecordParameters(ClassRecord classRecord) {
+	static List<NameValuePair> getRecordParameters(ClassRecord classRecord) {
 		List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
 		urlParameters.add(new BasicNameValuePair(
 				RemoteDatabaseConfiguration.KEY_RECORD_CENTRE_NO, String
@@ -121,14 +150,6 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 						.valueOf(classRecord.getEndGpsLongitude())));
 
 		return urlParameters;
-	}
-
-	public static boolean isConnected(Context context) {
-		ConnectivityManager cm = (ConnectivityManager) context
-				.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo netInfo = cm.getActiveNetworkInfo();
-		// should check null because in air plan mode it will be null
-		return (netInfo != null && netInfo.isConnected());
 	}
 
 	private class HttpRecordRequestHandler extends
@@ -179,7 +200,6 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 								.getStartTime());
 						classRecords.remove(classRecord);
 						notifyListener.notifyView();
-						// populateView();
 					}
 				} catch (IllegalStateException e) {
 					// TODO Auto-generated catch block
@@ -193,11 +213,5 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 				}
 			}
 		}
-
-	}
-
-	public static void setNotifyListener(
-			CustomSendMailListener customSendMailListener) {
-			notifyListener = customSendMailListener;	
 	}
 }

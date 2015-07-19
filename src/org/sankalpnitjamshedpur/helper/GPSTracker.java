@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -30,7 +31,7 @@ public class GPSTracker extends Service implements LocationListener {
 	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 1 meters
 
 	// The minimum time between updates in milliseconds
-	private static final long MIN_TIME_BW_UPDATES = 1000; // 0.1 minute
+	private static final long MIN_TIME_BW_UPDATES = 100; // 0.1 minute
 
 	// Declaring a Location Manager
 	protected LocationManager locationManager;
@@ -38,6 +39,11 @@ public class GPSTracker extends Service implements LocationListener {
 	public GPSTracker(Context context) {
 		this.mContext = context;
 		getLocation();
+	}
+
+	public static boolean doesDeviceHasGpsSensor(Context context) {
+		PackageManager packMan = context.getPackageManager();
+		return packMan.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
 	}
 
 	public Location getLocation() {
@@ -154,7 +160,10 @@ public class GPSTracker extends Service implements LocationListener {
 
 	@Override
 	public void onLocationChanged(Location location) {
-		this.location = location;
+		if (location != null) {
+			this.location = location;
+			isGPSEnabled = true;
+		}
 	}
 
 	@Override

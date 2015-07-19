@@ -21,15 +21,19 @@ import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -46,8 +50,9 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 	public static final int MEDIA_TYPE_IMAGE = 1;
 	public static final int MEDIA_TYPE_VIDEO = 2;
 
-	// directory name to store captured images and videos
-	private static final String IMAGE_DIRECTORY_NAME = "Hello Camera";
+	boolean isGPSavailable = false;
+
+	private static final String IMAGE_DIRECTORY_NAME = "Sankalp";
 
 	DatabaseHandler dbHandler;
 
@@ -73,11 +78,15 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 
 	long startTime, endTime;
 
+	LayoutInflater layoutInflater;
+	Context context;
+
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-
+		layoutInflater = inflater;
 		View android = inflater.inflate(R.layout.fragment_takeclass, container,
 				false);
+		context = android.getContext();
 
 		gpsTracker = new GPSTracker(android.getContext());
 		dbHandler = new DatabaseHandler(android.getContext());
@@ -101,6 +110,11 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 
 		if (savedInstanceState != null) {
 			fileUri = savedInstanceState.getParcelable("file_uri");
+			URIList = savedInstanceState.getParcelableArrayList("URI_LIST");
+		}
+
+		if (URIList != null && URIList.size() != 0) {
+			previewCapturedImages();
 		}
 
 		if (!classAlreadyStarted) {
@@ -112,6 +126,11 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		}
 		if (centreNo != 0) {
 			centreOption.setText("Centre: " + centreNo);
+		}
+
+		if (GPSTracker.doesDeviceHasGpsSensor(getActivity()
+				.getApplicationContext())) {
+			isGPSavailable = true;
 		}
 
 		if (!doesDeviceSupportCamera()) {
@@ -147,13 +166,13 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 			 */
 			Uri selectedImage = data.getData();
 			URIList.add(selectedImage);
-			previewCapturedImage();
+			previewCapturedImages();
 		}
 		if (requestCode == CAMERA_CAPTURE_IMAGE_REQUEST_CODE) {
 			if (resultCode == android.app.Activity.RESULT_OK) {
 				// successfully captured the image
 				// display it in image view
-				previewCapturedImage();
+				previewCapturedImages();
 			} else if (resultCode == android.app.Activity.RESULT_CANCELED) {
 				// user cancelled Image capture
 				Toast.makeText(getActivity().getApplicationContext(),
@@ -172,8 +191,11 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		btnCapturePicture.setVisibility(View.INVISIBLE);
 		centreOption.setVisibility(View.INVISIBLE);
 		editTextMessage.setVisibility(View.INVISIBLE);
+		editTextMessage.setText("");
 		editTextSubject.setVisibility(View.INVISIBLE);
-
+		editTextSubject.setText("");
+		URIList.clear();
+		previewCapturedImages();
 	}
 
 	void enableFields() {
@@ -191,7 +213,7 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		}
 
 		if (v == classFunctionButton && !classAlreadyStarted) {
-			if (!gpsTracker.canGetLocation()) {
+			if (isGPSavailable && !gpsTracker.canGetLocation()) {
 				gpsTracker.showSettingsAlert();
 				return;
 			}
@@ -212,7 +234,14 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 									.getTimeInMillis();
 							classFunctionButton.setText("Stop the class!!");
 							classAlreadyStarted = true;
-							startLocation = gpsTracker.getLocation();
+							if (!isGPSavailable) {
+								startLocation = new Location(
+										LocationManager.GPS_PROVIDER);
+								startLocation.setLatitude(0.0);
+								startLocation.setLongitude(0.0);
+							} else {
+								startLocation = gpsTracker.getLocation();
+							}
 							if (startLocation != null) {
 								Toast.makeText(
 										getActivity().getApplicationContext(),
@@ -246,7 +275,7 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 				centreOption.setError("Please select Centre");
 				return;
 			}
-			if (!gpsTracker.canGetLocation()) {
+			if (isGPSavailable && !gpsTracker.canGetLocation()) {
 				gpsTracker.showSettingsAlert();
 				return;
 			}
@@ -266,28 +295,43 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 							endTime = Calendar.getInstance().getTimeInMillis();
 							classFunctionButton.setText("Start the class!!");
 							classAlreadyStarted = false;
-							endLocation = gpsTracker.getLocation();
+
+							if (!isGPSavailable) {
+								endLocation = new Location(
+										LocationManager.GPS_PROVIDER);
+								endLocation.setLatitude(0.0);
+								endLocation.setLongitude(0.0);
+							} else {
+								endLocation = gpsTracker.getLocation();
+							}
+
 							if (endLocation != null) {
 								Toast.makeText(
 										getActivity().getApplicationContext(),
 										"Location determined" + "\n"
-												+ endLocation.getLatitude() + "\n"
+												+ endLocation.getLatitude()
+												+ "\n"
 												+ endLocation.getLongitude(),
 										Toast.LENGTH_SHORT).show();
 							} else {
-								Toast.makeText(getActivity().getApplicationContext(),
-										"Location Null", Toast.LENGTH_SHORT).show();
+								Toast.makeText(
+										getActivity().getApplicationContext(),
+										"Location Null", Toast.LENGTH_SHORT)
+										.show();
 							}
 
-							dbHandler.addClassRecord(new ClassRecord(URIList, startTime,
-									endTime, volunteerId, centreNo,
-									startLocation.getLatitude(), startLocation.getLongitude(),
-									endLocation.getLatitude(), endLocation.getLongitude()));
+							dbHandler.addClassRecord(new ClassRecord(URIList,
+									startTime, endTime, volunteerId, centreNo,
+									startLocation.getLatitude(), startLocation
+											.getLongitude(), endLocation
+											.getLatitude(), endLocation
+											.getLongitude()));
 							URIList.clear();
 							disableFields();
 							startLocation = null;
 							endLocation = null;
 							centreNo = 0;
+							showThanksPopUp();
 						}
 					});
 
@@ -324,6 +368,33 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 			alertDialogBuilder.create().show();
 		}
 
+	}
+
+	private void showThanksPopUp() {
+		View layout = layoutInflater.inflate(R.layout.thanks_window, null);
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setCancelable(true);
+		builder.setView(layout);
+
+		final AlertDialog alertDialog = builder.create();
+		alertDialog.show();
+		alertDialog.setTitle("Thanks!!");
+		
+		Button b = (Button) layout.findViewById(R.id.doneButton);
+		b.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				alertDialog.dismiss();				
+			}
+		});
+
+		new Handler().postDelayed(new Runnable() {
+			public void run() {
+				alertDialog.dismiss();
+			}
+		}, 20 * 1000);
 	}
 
 	ArrayList<Uri> getCompressedUri(List<Uri> uriList) {
@@ -403,12 +474,13 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		// save file url in bundle as it will be null on screen orientation
 		// changes
 		outState.putParcelable("file_uri", fileUri);
+		outState.putParcelableArrayList("URI_LIST", URIList);
 	}
 
 	/**
 	 * Display image from a path to ImageView
 	 */
-	private void previewCapturedImage() {
+	private void previewCapturedImages() {
 		gridView.setVerticalScrollBarEnabled(false);
 		gridView.setAdapter(new ImageAdapter(getActivity()
 				.getApplicationContext(), URIList));
