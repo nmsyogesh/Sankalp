@@ -19,6 +19,7 @@ public class RemoteDatabaseConfiguration {
 	public static final String KEY_RECORD_START_LONGITUDE = "1000174";
 	public static final String KEY_RECORD_END_LATITUDE = "1000175";
 	public static final String KEY_RECORD_END_LONGITUDE = "1000176";
+	public static final String KEY_RECORD_COMMENTS = "1000177";
 	
 	public static final String RECORD_URL = "https://api.ragic.com/sankalp/sankalp/2?v=3";
 	public static final String USER_URL = "https://api.ragic.com/sankalp/sankalp/1?v=3";

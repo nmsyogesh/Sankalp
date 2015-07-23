@@ -33,7 +33,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
-import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -57,15 +56,14 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 	DatabaseHandler dbHandler;
 
 	GridView gridView;
-	EditText editTextSubject, editTextMessage;
 	Button btnCapturePicture, centreOption;
 	Button classFunctionButton;
-	String email, subject, message, attachmentFile;
 	Uri fileUri;
 	ArrayList<Uri> URIList = new ArrayList<Uri>();
 	private static final int PICK_FROM_GALLERY = 101;
 	int columnIndex;
 	GPSTracker gpsTracker;
+	EditText comments;
 	Dialog gpsDialog;
 
 	Location startLocation;
@@ -88,15 +86,18 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 				false);
 		context = android.getContext();
 
-		gpsTracker = new GPSTracker(android.getContext());
-		dbHandler = new DatabaseHandler(android.getContext());
+		if (savedInstanceState != null) {
+			fileUri = savedInstanceState.getParcelable("file_uri");
+			URIList = savedInstanceState.getParcelableArrayList("URI_LIST");
+		} else {
+			gpsTracker = new GPSTracker(android.getContext());
+			dbHandler = new DatabaseHandler(android.getContext());
+		}
 		volunteerId = SharedPreferencesKey.getStringFromSharedPreferences(
 				SharedPreferencesKey.KEY_VOLUNTEERID, "", android.getContext());
 
 		gridView = (GridView) android.findViewById(R.id.previewPane);
-
-		editTextSubject = (EditText) android.findViewById(R.id.editTextSubject);
-		editTextMessage = (EditText) android.findViewById(R.id.editTextMessage);
+		comments = (EditText) android.findViewById(R.id.comments);
 		centreOption = (Button) android.findViewById(R.id.centreOption);
 
 		classFunctionButton = (Button) android
@@ -107,11 +108,6 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		btnCapturePicture.setOnClickListener(this);
 		classFunctionButton.setOnClickListener(this);
 		centreOption.setOnClickListener(this);
-
-		if (savedInstanceState != null) {
-			fileUri = savedInstanceState.getParcelable("file_uri");
-			URIList = savedInstanceState.getParcelableArrayList("URI_LIST");
-		}
 
 		if (URIList != null && URIList.size() != 0) {
 			previewCapturedImages();
@@ -137,9 +133,9 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 			Toast.makeText(getActivity().getApplicationContext(),
 					"Sorry! Your device doesn't support camera",
 					Toast.LENGTH_LONG).show();
-			Log.e(attachmentFile, "Sorry! Your device doesn't support camera");
+			Log.d("TakeClass", "Sorry! Your device doesn't support camera");
 		}
-		Log.e(attachmentFile, "Device supports camera");
+		Log.i("TakeClass", "Device supports camera");
 		return android;
 	}
 
@@ -190,10 +186,8 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 	void disableFields() {
 		btnCapturePicture.setVisibility(View.INVISIBLE);
 		centreOption.setVisibility(View.INVISIBLE);
-		editTextMessage.setVisibility(View.INVISIBLE);
-		editTextMessage.setText("");
-		editTextSubject.setVisibility(View.INVISIBLE);
-		editTextSubject.setText("");
+		comments.setVisibility(View.INVISIBLE);
+		comments.setText("");
 		URIList.clear();
 		previewCapturedImages();
 	}
@@ -201,14 +195,13 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 	void enableFields() {
 		btnCapturePicture.setVisibility(View.VISIBLE);
 		centreOption.setVisibility(View.VISIBLE);
-		editTextMessage.setVisibility(View.VISIBLE);
-		editTextSubject.setVisibility(View.VISIBLE);
+		comments.setVisibility(View.VISIBLE);
 	}
 
 	@Override
 	public void onClick(View v) {
 		if (v == btnCapturePicture) {
-			Log.i(attachmentFile, "taking pic");
+			Log.i("TakeClass", "taking pic");
 			captureImage();
 		}
 
@@ -234,15 +227,20 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 									.getTimeInMillis();
 							classFunctionButton.setText("Stop the class!!");
 							classAlreadyStarted = true;
-							if (!isGPSavailable) {
-								startLocation = new Location(
-										LocationManager.GPS_PROVIDER);
-								startLocation.setLatitude(0.0);
-								startLocation.setLongitude(0.0);
-							} else {
+							startLocation = null;
+
+							if (isGPSavailable) {
 								startLocation = gpsTracker.getLocation();
 							}
-							if (startLocation != null) {
+
+							if (startLocation == null) {
+								startLocation = new Location(
+										LocationManager.GPS_PROVIDER);
+								Toast.makeText(
+										getActivity().getApplicationContext(),
+										"Location Null", Toast.LENGTH_SHORT)
+										.show();
+							} else {
 								Toast.makeText(
 										getActivity().getApplicationContext(),
 										"Location determined" + "\n"
@@ -250,12 +248,8 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 												+ "\n"
 												+ startLocation.getLongitude(),
 										Toast.LENGTH_SHORT).show();
-							} else {
-								Toast.makeText(
-										getActivity().getApplicationContext(),
-										"Location Null", Toast.LENGTH_SHORT)
-										.show();
 							}
+
 							centreOption.setText("Select Centre");
 							enableFields();
 						}
@@ -295,17 +289,19 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 							endTime = Calendar.getInstance().getTimeInMillis();
 							classFunctionButton.setText("Start the class!!");
 							classAlreadyStarted = false;
+							endLocation = null;
 
-							if (!isGPSavailable) {
-								endLocation = new Location(
-										LocationManager.GPS_PROVIDER);
-								endLocation.setLatitude(0.0);
-								endLocation.setLongitude(0.0);
-							} else {
+							if (isGPSavailable) {
 								endLocation = gpsTracker.getLocation();
 							}
-
-							if (endLocation != null) {
+							if (endLocation == null) {
+								endLocation = new Location(
+										LocationManager.GPS_PROVIDER);
+								Toast.makeText(
+										getActivity().getApplicationContext(),
+										"Location Null", Toast.LENGTH_SHORT)
+										.show();
+							} else {
 								Toast.makeText(
 										getActivity().getApplicationContext(),
 										"Location determined" + "\n"
@@ -313,11 +309,6 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 												+ "\n"
 												+ endLocation.getLongitude(),
 										Toast.LENGTH_SHORT).show();
-							} else {
-								Toast.makeText(
-										getActivity().getApplicationContext(),
-										"Location Null", Toast.LENGTH_SHORT)
-										.show();
 							}
 
 							dbHandler.addClassRecord(new ClassRecord(URIList,
@@ -325,7 +316,9 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 									startLocation.getLatitude(), startLocation
 											.getLongitude(), endLocation
 											.getLatitude(), endLocation
-											.getLongitude()));
+											.getLongitude())
+									.setComments(comments.getText().toString()));
+							
 							URIList.clear();
 							disableFields();
 							startLocation = null;
@@ -380,13 +373,13 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		final AlertDialog alertDialog = builder.create();
 		alertDialog.show();
 		alertDialog.setTitle("Thanks!!");
-		
+
 		Button b = (Button) layout.findViewById(R.id.doneButton);
 		b.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
-				alertDialog.dismiss();				
+				alertDialog.dismiss();
 			}
 		});
 

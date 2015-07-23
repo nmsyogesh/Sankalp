@@ -148,6 +148,9 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 		urlParameters.add(new BasicNameValuePair(
 				RemoteDatabaseConfiguration.KEY_RECORD_END_LONGITUDE, String
 						.valueOf(classRecord.getEndGpsLongitude())));
+		urlParameters.add(new BasicNameValuePair(
+				RemoteDatabaseConfiguration.KEY_RECORD_COMMENTS, String
+						.valueOf(classRecord.getComments())));
 
 		return urlParameters;
 	}

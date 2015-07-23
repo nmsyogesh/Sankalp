@@ -14,6 +14,15 @@ public class ClassRecord {
 	private double endGpsLatitude;
 	private double endGpsLongitude;
 	private boolean sentNotification;
+	private String comments;
+	public String getComments() {
+		return comments;
+	}
+
+	public ClassRecord setComments(String comments) {
+		this.comments = comments;
+		return this;
+	}
 
 	public ClassRecord() {
 

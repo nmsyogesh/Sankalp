@@ -2,6 +2,7 @@ package org.sankalpnitjamshedpur.helper;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
@@ -22,22 +24,16 @@ public class GPSTracker extends Service implements LocationListener {
 	public boolean isGPSEnabled = false;
 
 	Location location; // location
-	double latitude; // latitude
-	double longitude; // longitude
 
 	AlertDialog gpsdialog;
-
-	// The minimum distance to change Updates in meters
-	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 1 meters
-
-	// The minimum time between updates in milliseconds
-	private static final long MIN_TIME_BW_UPDATES = 100; // 0.1 minute
 
 	// Declaring a Location Manager
 	protected LocationManager locationManager;
 
 	public GPSTracker(Context context) {
 		this.mContext = context;
+		locationManager = (LocationManager) mContext
+				.getSystemService(LOCATION_SERVICE);
 		getLocation();
 	}
 
@@ -48,9 +44,6 @@ public class GPSTracker extends Service implements LocationListener {
 
 	public Location getLocation() {
 		try {
-			locationManager = (LocationManager) mContext
-					.getSystemService(LOCATION_SERVICE);
-
 			// getting GPS status
 			isGPSEnabled = locationManager
 					.isProviderEnabled(LocationManager.GPS_PROVIDER);
@@ -60,19 +53,24 @@ public class GPSTracker extends Service implements LocationListener {
 				showSettingsAlert();
 			} else {
 				if (location == null) {
+					locationManager = (LocationManager) mContext
+							.getSystemService(LOCATION_SERVICE);
 					locationManager.requestLocationUpdates(
-							LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES,
-							MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+							LocationManager.GPS_PROVIDER, 10, 0, this);
 					if (locationManager != null) {
 						location = locationManager
 								.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-						if (location != null) {
-							latitude = location.getLatitude();
-							longitude = location.getLongitude();
+					}
+
+					if (location == null) {
+						if (locationManager
+								.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+							locationManager.requestLocationUpdates(
+									LocationManager.NETWORK_PROVIDER, 10, 0,
+									this);
 						}
 					}
 				}
-
 			}
 
 		} catch (Exception e) {
@@ -80,30 +78,6 @@ public class GPSTracker extends Service implements LocationListener {
 		}
 
 		return location;
-	}
-
-	/**
-	 * Function to get latitude
-	 * */
-	public double getLatitude() {
-		if (location != null) {
-			latitude = location.getLatitude();
-		}
-
-		// return latitude
-		return latitude;
-	}
-
-	/**
-	 * Function to get longitude
-	 * */
-	public double getLongitude() {
-		if (location != null) {
-			longitude = location.getLongitude();
-		}
-
-		// return longitude
-		return longitude;
 	}
 
 	/**
@@ -150,10 +124,14 @@ public class GPSTracker extends Service implements LocationListener {
 			public void onCancel(DialogInterface dialog) {
 				if (!canGetLocation()) {
 					showSettingsAlert();
+					return;
+				}
+				if (getLocation() == null) {
+					dialog.dismiss();
+					new ShowDialog().execute();
 				}
 			}
 		});
-
 		gpsdialog.show();
 		return gpsdialog;
 	}
@@ -162,20 +140,33 @@ public class GPSTracker extends Service implements LocationListener {
 	public void onLocationChanged(Location location) {
 		if (location != null) {
 			this.location = location;
-			isGPSEnabled = true;
+		}
+		if (gpsdialog != null) {
+			gpsdialog.dismiss();
 		}
 	}
 
 	@Override
 	public void onProviderDisabled(String provider) {
-		isGPSEnabled = false;
-		showSettingsAlert();
+		if (provider == LocationManager.GPS_PROVIDER) {
+			isGPSEnabled = false;
+			showSettingsAlert();
+		}
 	}
 
 	@Override
 	public void onProviderEnabled(String provider) {
 		if (provider == LocationManager.GPS_PROVIDER) {
 			isGPSEnabled = true;
+			if (getLocation() != null && gpsdialog != null) {
+				gpsdialog.cancel();
+			}
+			if (getLocation() == null) {
+				if (gpsdialog != null) {
+					gpsdialog.dismiss();
+				}
+				new ShowDialog().execute();
+			}
 		}
 	}
 
@@ -183,8 +174,39 @@ public class GPSTracker extends Service implements LocationListener {
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 	}
 
+	public class ShowDialog extends AsyncTask<String, Integer, String> {
+		ProgressDialog progDailog = null;
+
+		public LocationManager mLocationManager;
+
+		@Override
+		protected void onPreExecute() {
+			progDailog = new ProgressDialog(mContext);
+			progDailog.setCancelable(false);
+			progDailog.setTitle("Please Wait");
+			progDailog.setMessage("Getting Location through GPS !!\nIt may take some time.");
+			progDailog.setIndeterminate(true);
+			progDailog.show();
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			progDailog.dismiss();
+		}
+
+		@Override
+		protected String doInBackground(String... params) {
+			// TODO Auto-generated method stub
+
+			while (getLocation() == null) {
+			}
+			return null;
+		}
+	}
+
 	@Override
-	public IBinder onBind(Intent arg0) {
+	public IBinder onBind(Intent intent) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

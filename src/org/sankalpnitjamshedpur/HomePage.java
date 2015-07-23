@@ -13,6 +13,8 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 @SuppressWarnings("deprecation")
 public class HomePage extends ActionBarActivity implements
@@ -37,7 +39,7 @@ public class HomePage extends ActionBarActivity implements
 		viewPager.setAdapter(tabPagerAdapter);
 
 		actionBar = getSupportActionBar();
-		
+
 		// Enable Tabs on Action Bar
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
@@ -125,8 +127,36 @@ public class HomePage extends ActionBarActivity implements
 								}
 							}).create().show();
 			return true;
+			
+		case R.id.help:
+
+			AlertDialog.Builder aB = new AlertDialog.Builder(this);
+
+			aB.setTitle("Direction to use:");
+			aB.setView(getDirectionsView());
+			aB.setCancelable(true);
+
+			aB.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.cancel();
+				}
+			}).create().show();
+			
+			return true;
+			
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+
+	ScrollView getDirectionsView() {
+		ScrollView sV = new ScrollView(this);
+		TextView tv = new TextView(this);
+		tv.setPadding(20, 10, 10, 20);
+		tv.setTextSize(15);
+		tv.setText(R.string.directions);
+
+		sV.addView(tv);
+		return sV;
 	}
 }

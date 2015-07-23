@@ -1,5 +1,6 @@
 package org.sankalpnitjamshedpur.tabs;
 
+import java.io.File;
 import java.util.Calendar;
 import java.util.List;
 
@@ -8,11 +9,14 @@ import org.sankalpnitjamshedpur.R;
 import org.sankalpnitjamshedpur.db.DatabaseHandler;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
 import org.sankalpnitjamshedpur.helper.NetworkStatusChangeReceiver;
+import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -36,10 +40,10 @@ public class ClassRecordsFragment extends Fragment {
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {		
+			Bundle savedInstanceState) {
 		android = inflater.inflate(R.layout.fragment_class_records, container,
 				false);
-		context = android.getContext();		
+		context = android.getContext();
 		networkStatusChangeReceiver = new NetworkStatusChangeReceiver(context,
 				this);
 		dbHandler = new DatabaseHandler(context);
@@ -56,7 +60,11 @@ public class ClassRecordsFragment extends Fragment {
 		mainLayout.setOrientation(LinearLayout.VERTICAL);
 		LinearLayout.LayoutParams lp = new LayoutParams(
 				LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-		List<ClassRecord> classRecords = dbHandler.getAllClassRecords();
+		List<ClassRecord> classRecords = dbHandler
+				.getAllClassRecords(SharedPreferencesKey
+						.getStringFromSharedPreferences(
+								SharedPreferencesKey.KEY_VOLUNTEERID, null,
+								context));
 		if (classRecords == null || classRecords.isEmpty()) {
 			TextView tv = new TextView(context);
 			tv.setText("Sorry No records found \n Consider taking a class today!!!");
@@ -110,14 +118,14 @@ public class ClassRecordsFragment extends Fragment {
 		ImageView deleteImage = new ImageView(context);
 		deleteImage.setClickable(true);
 		deleteImage.setOnClickListener(new CustomOnClickDeleteListener(
-				classRecord.getStartTime()));		
+				classRecord));
 		deleteImage.setImageResource(R.drawable.cancel);
 		deleteImage.setBackgroundResource(R.drawable.rectangle);
 		deleteImage.setPadding(13, 10, 13, 10);
 
 		ImageView sendMail = new ImageView(context);
 		sendMail.setClickable(true);
-		sendMail.setOnClickListener(new CustomSendMailListener(classRecord));		
+		sendMail.setOnClickListener(new CustomSendMailListener(classRecord));
 		sendMail.setImageResource(R.drawable.sendmail);
 		sendMail.setBackgroundResource(R.drawable.rectangle);
 		sendMail.setPadding(13, 10, 13, 10);
@@ -130,13 +138,13 @@ public class ClassRecordsFragment extends Fragment {
 		}
 
 		headerLinearLayout.addView(deleteImage);
-		
+
 		wrappedLp.setMargins(10, 10, 10, 10);
 		headerLinearLayout.addView(tv, wrappedLp);
-		
+
 		wrappedLp.setMargins(10, 10, 0, 10);
 		headerLinearLayout.addView(sendMail, wrappedLp);
-		
+
 		headerLinearLayout.addView(notification);
 
 		headerLinearLayout.setGravity(Gravity.CENTER);
@@ -149,11 +157,11 @@ public class ClassRecordsFragment extends Fragment {
 
 	private class CustomOnClickDeleteListener implements OnClickListener {
 
-		long startTime;
+		ClassRecord classRecord;
 		DatabaseHandler db = new DatabaseHandler(context);
 
-		public CustomOnClickDeleteListener(long startTime) {
-			this.startTime = startTime;
+		public CustomOnClickDeleteListener(ClassRecord classRecord) {
+			this.classRecord = classRecord;
 		}
 
 		@Override
@@ -171,7 +179,27 @@ public class ClassRecordsFragment extends Fragment {
 					new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							db.deleteClassRecord(startTime);
+							if(classRecord.getUriList()!=null && classRecord.getUriList().size()!=0) {
+								for(Uri uri: classRecord.getUriList()) {
+									File f = new File(uri.getPath());
+									if(f!=null) {
+										f.delete();
+									}
+								}
+								
+								String timeStamp = String.valueOf(classRecord.getStartTime());
+								String zipFilePath = Environment
+										.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+										+ File.separator
+										+ "VolunteerSubmission"
+										+ timeStamp
+										+ ".zip";
+								File f = new File(zipFilePath);
+								if(f!=null) {
+									f.delete();
+								}
+							}
+							db.deleteClassRecord(classRecord.getStartTime());
 							populateView();
 						}
 					});
@@ -190,7 +218,7 @@ public class ClassRecordsFragment extends Fragment {
 	public class CustomSendMailListener implements OnClickListener {
 
 		ClassRecord classRecord;
-		String comment="";
+		String comment = "";
 
 		public CustomSendMailListener(ClassRecord classRecord) {
 			this.classRecord = classRecord;
@@ -198,41 +226,50 @@ public class ClassRecordsFragment extends Fragment {
 
 		@Override
 		public void onClick(View v) {
-			
+
 			if (!classRecord.isSentNotification()) {
-				networkStatusChangeReceiver.addClassRecord(classRecord);
-				networkStatusChangeReceiver.processRequests();
-				Toast.makeText(context, "Added post request to queue",
+				AlertDialog.Builder alert = new AlertDialog.Builder(context);
+
+				alert.setTitle("Generating Report");
+				alert.setMessage("Do you want to edit the comment before Sending");
+
+				// Set an EditText view to get user input
+				final EditText input = new EditText(context);
+				input.setText(classRecord.getComments());
+				alert.setView(input);
+
+				alert.setPositiveButton("Done",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int whichButton) {
+								comment = input.getText().toString();
+								classRecord.setComments(comment);	
+
+								networkStatusChangeReceiver.addClassRecord(classRecord);
+								networkStatusChangeReceiver.processRequests();
+								Toast.makeText(context, "Added post request to queue",
+										Toast.LENGTH_SHORT).show();
+								
+								if (classRecord.getUriList() != null
+										&& classRecord.getUriList().size() != 0) {
+									processEmail();
+								}
+							}
+						});
+				alert.show();
+			} else if (classRecord.getUriList() != null
+					&& classRecord.getUriList().size() != 0) {
+				processEmail();
+			} else {
+				Toast.makeText(context, "Record already posted!!",
 						Toast.LENGTH_SHORT).show();
-			}
-			AlertDialog.Builder alert = new AlertDialog.Builder(context);
+			} 
+		}
 
-			alert.setTitle("Generating Report");
-			alert.setMessage("Do you want to add a comment before Sending");
-
-			// Set an EditText view to get user input 
-			final EditText input = new EditText(context);
-			alert.setView(input);		
-
-			alert.setPositiveButton("Done", new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int whichButton) {
-				comment = input.getText().toString();
-				CreateReportMail createReportMailHelper = new CreateReportMail(
-						classRecord.getStartTime(), context, comment);
-				createReportMailHelper.sendMail();
-			  }
-			});
-
-			alert.setNegativeButton("No Thanks!!", new DialogInterface.OnClickListener() {
-			  public void onClick(DialogInterface dialog, int whichButton) {
-				  CreateReportMail createReportMailHelper = new CreateReportMail(
-							classRecord.getStartTime(), context, comment);
-				  createReportMailHelper.sendMail();
-			  }
-			});			
-			
-			alert.show();
-			
+		public void processEmail() {
+			CreateReportMail createReportMailHelper = new CreateReportMail(
+					classRecord, context);
+			createReportMailHelper.sendMail();
 		}
 	}
 }

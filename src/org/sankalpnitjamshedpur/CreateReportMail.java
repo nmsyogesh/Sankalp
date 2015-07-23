@@ -15,6 +15,7 @@ import net.lingala.zip4j.util.Zip4jConstants;
 import org.sankalpnitjamshedpur.db.DatabaseHandler;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -23,22 +24,21 @@ import android.widget.Toast;
 
 public class CreateReportMail {
 
-	long startTime;
 	ClassRecord classRecord;
 	DatabaseHandler dBHandler;
 	Context context;
-	String mailBody;
 
-	public CreateReportMail(long startTime, Context context, String mainText) {
+	public CreateReportMail(ClassRecord classRecord, Context context) {
 		super();
-		this.startTime = startTime;
+		this.classRecord = classRecord;
 		this.context = context;
-		this.mailBody = mainText;
 	}
 
 	public void sendMail() {
 		dBHandler = new DatabaseHandler(context);
-		classRecord = dBHandler.getClassRecordByStartTime(startTime);
+
+		ProgressDialog pd = ProgressDialog.show(context, "Please Wait",
+				"Generating zip file!!");
 		try {
 			String address = "ugesh.ebay@gmaill.com";
 
@@ -59,24 +59,25 @@ public class CreateReportMail {
 							+ classCalender.get(Calendar.MONTH) + "-"
 							+ classCalender.get(Calendar.YEAR));
 
-			if (mailBody == null || mailBody.isEmpty()
-					|| mailBody.trim().isEmpty()) {
+			if (classRecord.getComments() == null
+					|| classRecord.getComments().isEmpty()
+					|| classRecord.getComments().trim().isEmpty()) {
 				emailIntent.putExtra(android.content.Intent.EXTRA_TEXT,
 						"No content in Message");
 			} else {
 				emailIntent.putExtra(android.content.Intent.EXTRA_TEXT,
-						mailBody);
+						classRecord.getComments());
 			}
-			
+
 			if (classRecord.getUriList() != null
-					&& classRecord.getUriList().size() != 0)
+					&& classRecord.getUriList().size() != 0) {
 				emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM,
 						getCompressedUri(classRecord.getUriList()));
+			}
 
+			pd.dismiss();
 			context.startActivity(Intent.createChooser(emailIntent,
 					"Sending email.."));
-			Toast.makeText(context, "Generating Mail Report !!",
-					Toast.LENGTH_LONG).show();
 
 		} catch (Throwable t) {
 			Toast.makeText(context,
@@ -90,8 +91,7 @@ public class CreateReportMail {
 		ArrayList<Uri> list = new ArrayList<Uri>();
 
 		try {
-			String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
-					Locale.getDefault()).format(new Date());
+			String timeStamp = String.valueOf(classRecord.getStartTime());
 			String outputFileName = Environment
 					.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
 					+ File.separator
@@ -99,40 +99,41 @@ public class CreateReportMail {
 					+ timeStamp
 					+ ".zip";
 			outputFileH = new File(outputFileName);
-			ZipFile zipFile = new ZipFile(outputFileName);
-			ArrayList<File> filesToAdd = new ArrayList<File>();
-			ZipParameters parameters = new ZipParameters();
+			if (!outputFileH.exists()) {
+				ZipFile zipFile = new ZipFile(outputFileName);
+				ArrayList<File> filesToAdd = new ArrayList<File>();
+				ZipParameters parameters = new ZipParameters();
 
-			// COMP_DEFLATE is for compression
-			// COMp_STORE no compression
-			parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
+				// COMP_DEFLATE is for compression
+				// COMp_STORE no compression
+				parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
 
-			// DEFLATE_LEVEL_ULTRA = maximum compression
-			// DEFLATE_LEVEL_MAXIMUM
-			// DEFLATE_LEVEL_NORMAL = normal compression
-			// DEFLATE_LEVEL_FAST
-			// DEFLATE_LEVEL_FASTEST = fastest compression
-			parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_ULTRA);
+				// DEFLATE_LEVEL_ULTRA = maximum compression
+				// DEFLATE_LEVEL_MAXIMUM
+				// DEFLATE_LEVEL_NORMAL = normal compression
+				// DEFLATE_LEVEL_FAST
+				// DEFLATE_LEVEL_FASTEST = fastest compression
+				parameters
+						.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_ULTRA);
 
-			parameters.setEncryptFiles(true);
-			parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_AES);
-			parameters.setAesKeyStrength(Zip4jConstants.AES_STRENGTH_256);
-			parameters.setPassword("password");
+				parameters.setEncryptFiles(true);
+				parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_AES);
+				parameters.setAesKeyStrength(Zip4jConstants.AES_STRENGTH_256);
+				parameters.setPassword("password");
 
-			for (Uri uri : uriList) {
-				File inputFileH = new File(uri.getPath());
-				if (inputFileH != null)
-					filesToAdd.add(inputFileH);
+				for (Uri uri : uriList) {
+					File inputFileH = new File(uri.getPath());
+					if (inputFileH != null)
+						filesToAdd.add(inputFileH);
+				}
+
+				zipFile.createZipFile(filesToAdd, parameters);
 			}
-
-			zipFile.createZipFile(filesToAdd, parameters);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		list.add(Uri.fromFile(outputFileH));
-
 		return (outputFileH != null) ? list : null;
 	}
 }

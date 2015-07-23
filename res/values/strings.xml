@@ -3,6 +3,17 @@
 
     <string name="app_name" translatable="false">Sankalp</string>
     <string name="action_settings" translatable="false">Settings</string>
+    <string name="directions" translatable="false">Create a account through Register button at the start Page. Make sure to remember the password as 
+        we don\'t have a password retrival mechanism in place. After loggin the app, You can browse through tabs.\n
+        \nThe Profile tab contains different details about you. The app requires enabling your GPS if GPS functionality is available in your device. 
+        The first time you enable the GPS, app might take some time to determine your location. \n
+        \nOnce prepared, start taking the class by hitting the Start Class button. Once class is started, please select the centre no and then if you want, you can capture some pictures to be sent to us.
+        You can then stop the class.\n
+        \nMake sure that you dont press stop button before completing the class as you will not be able to modify the class record.\n
+        Once stopped, The class record can be seen in the classRecords tab. If the class record is not relevant, you can delete it. Or if this is the valid record, Please press the send Mail button right beside the 
+        record, and the class data  will be posted to server. If there were images associated with the class Record, a encrypted file will be generted seperately to be sent to our mail address; which you can mail us through GMAIL or any email provider of your choice.
+        \n\nWhile mailing the record to remote server, you can mention your comments also. 
+        \n\nOnce the record has been posted to our server, a sent notification checkmark will appear beside your classRecord. Please make sure, all your valid records have been pushed to our server.</string>
 
     <string-array name="branch_array">
         <item>EC</item>
@@ -11,16 +22,14 @@
         <item>ME</item>
         <item>MT</item>
         <item>CE</item>
-        <item>PR</item>  
+        <item>PR</item>
         <item>MCA</item>
     </string-array>
-    
     <string-array name="login_options">
-        <item>Volunteer Id</item> 
+        <item>Volunteer Id</item>
         <item>Email Id</item>
         <item>Mobile No</item>
     </string-array>
-    
     <string-array name="centre_array">
         <item>1</item>
         <item>2</item>
@@ -29,10 +38,9 @@
         <item>5</item>
         <item>6</item>
     </string-array>
-    
     <string-array name="batch_array">
         <item>2012</item>
-        <item>2013</item>  
+        <item>2013</item>
         <item>2014</item>
         <item>2015</item>
         <item>2016</item>

@@ -33,43 +33,32 @@
             android:background="@drawable/rectangle"
             android:gravity="center"
             android:text="Select Centre" />
-
+        
         <EditText
-            android:id="@+id/editTextSubject"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/centreOption"
-			android:layout_margin="5dp"
-			android:padding="15dp"
-            android:hint="General Comments"
-            android:singleLine="true" />
-
-        <EditText
-            android:id="@+id/editTextMessage"
+            android:id="@+id/comments"
             android:layout_width="match_parent"
             android:layout_height="100dp"
-            android:layout_below="@id/editTextSubject"
+            android:layout_below="@id/centreOption"
 			android:layout_margin="5dp"
 			android:padding="15dp"
-            android:hint="Type message here!"
+            android:hint="Have any issues in the class??"
             android:inputType="textMultiLine" />
 
         <Button
             android:id="@+id/btnCapturePicture"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/editTextMessage"
+            android:layout_below="@id/comments"
             android:gravity="center_horizontal"
 			android:layout_margin="15dp"
 			android:padding="15dp"
             android:background="@drawable/rectangle"
-            android:text="Attach a Picture Optionally" />
+            android:text="Attach a Picture with class (Optional)" />
 
         <GridView
             android:id="@+id/previewPane"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
-            android:layout_alignParentBottom="true"
             android:layout_below="@id/btnCapturePicture"
             android:background="@drawable/rectangle"
             android:columnWidth="90dp"

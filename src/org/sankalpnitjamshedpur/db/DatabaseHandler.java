@@ -19,7 +19,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 	// All Static variables
 	// Database Version
-	private static final int DATABASE_VERSION = 2;
+	private static final int DATABASE_VERSION = 3;
 
 	// Database Name
 	private static final String DATABASE_NAME = "sankalp";
@@ -48,6 +48,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private static final String KEY_END_LATITUDE = "endGpsLatitude";
 	private static final String KEY_END_LONGIITUDE = "endGpsLongitude";
 	private static final String KEY_SENT_NOTIFICATION = "sentNotification";
+	private static final String KEY_COMMENTS = "comments";
 
 	public DatabaseHandler(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -68,7 +69,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				+ " INTEGER ," + KEY_CENTRE + " INTEGER ," + KEY_START_LATITUDE
 				+ " REAL ," + KEY_START_LONGIITUDE + " REAL ,"
 				+ KEY_END_LATITUDE + " REAL ," + KEY_END_LONGIITUDE + " REAL ,"
-				+ KEY_SENT_NOTIFICATION + " INTEGER " + ")";
+				+ KEY_SENT_NOTIFICATION + " INTEGER ," + KEY_COMMENTS + " TEXT "+")";
 
 		db.execSQL(CREATE_CONTACTS_TABLE);
 		db.execSQL(CREATE_RECORDS_TABLE);
@@ -130,6 +131,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				String.valueOf(classRecord.getEndGpsLongitude()));
 		values.put(KEY_SENT_NOTIFICATION,
 				classRecord.isSentNotification() ? "1" : "0");
+		values.put(KEY_COMMENTS,
+				classRecord.getComments());
 
 		// Inserting Row
 		db.insert(TABLE_CLASS_RECORDS, null, values);
@@ -179,13 +182,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		return uriList;
 	}
 
-	public ArrayList<ClassRecord> getAllClassRecords() {
+	public ArrayList<ClassRecord> getAllClassRecords(String volunteerId) {
 		ArrayList<ClassRecord> classRecords = new ArrayList<ClassRecord>();
 		SQLiteDatabase db = this.getWritableDatabase();
+		
+		Cursor cursor = db.query(TABLE_CLASS_RECORDS, new String[] {
+				KEY_START_TIME, KEY_URI_LIST, KEY_VOLUNTEERID, KEY_END_TIME,
+				KEY_CENTRE, KEY_START_LATITUDE, KEY_START_LONGIITUDE,
+				KEY_END_LATITUDE, KEY_END_LONGIITUDE, KEY_SENT_NOTIFICATION, KEY_COMMENTS },
+				KEY_VOLUNTEERID + "=?",
+				new String[] { String.valueOf(volunteerId) }, null, null, null,
+				null);
 
-		String selectQuery = "SELECT  * FROM " + TABLE_CLASS_RECORDS;
-
-		Cursor cursor = db.rawQuery(selectQuery, null);
 		if (cursor.moveToFirst()) {
 			do {
 				ClassRecord record = new ClassRecord();
@@ -199,12 +207,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				record.setEndGpsLatitude(cursor.getDouble(7));
 				record.setEndGpsLongitude(cursor.getDouble(8));
 				record.setSentNotification(cursor.getInt(9) == 1 ? true : false);
-
+				record.setComments(cursor.getString(10));
 				classRecords.add(record);
 			} while (cursor.moveToNext());
 		}
 
-		db.close();
 		return classRecords;
 	}
 
@@ -287,7 +294,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		Cursor cursor = db.query(TABLE_CLASS_RECORDS, new String[] {
 				KEY_START_TIME, KEY_URI_LIST, KEY_VOLUNTEERID, KEY_END_TIME,
 				KEY_CENTRE, KEY_START_LATITUDE, KEY_START_LONGIITUDE,
-				KEY_END_LATITUDE, KEY_END_LONGIITUDE, KEY_SENT_NOTIFICATION },
+				KEY_END_LATITUDE, KEY_END_LONGIITUDE, KEY_SENT_NOTIFICATION, KEY_COMMENTS },
 				KEY_START_TIME + "=?",
 				new String[] { String.valueOf(startTime) }, null, null, null,
 				null);
@@ -308,6 +315,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		record.setEndGpsLatitude(cursor.getDouble(7));
 		record.setEndGpsLongitude(cursor.getDouble(8));
 		record.setSentNotification(cursor.getInt(9) == 1 ? true : false);
+		record.setComments(cursor.getString(10));
 
 		db.close();
 
@@ -356,8 +364,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				new String[] { String.valueOf(startTime) });
 		db.close();
 	}
-
-	// Deleting single contact
+	
 	public int markClassRecordNotification(long startTime) {
 		SQLiteDatabase db = this.getWritableDatabase();
 
