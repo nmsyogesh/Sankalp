@@ -33,7 +33,7 @@ public class HttpRequestHandler extends
 		try {
 			HttpResponse response = client.execute(httpRequest);
 			if (response.getEntity() != null)
-				return response;
+				userAuthenticationActivity.onRequestResult(response, registrationStage);
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -43,7 +43,6 @@ public class HttpRequestHandler extends
 	}
 
 	protected void onPostExecute(HttpResponse response) {
-		userAuthenticationActivity.onRequestResult(response, registrationStage);
 	}
 
 }

@@ -32,7 +32,6 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.widget.Toast;
 
 public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 
@@ -41,12 +40,13 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 	public DatabaseHandler dbHandler;
 	public ClassRecordsFragment notifyListener;
 
-	public NetworkStatusChangeReceiver(Context context, ClassRecordsFragment notifyListener) {
+	public NetworkStatusChangeReceiver(Context context,
+			ClassRecordsFragment notifyListener) {
 		this.context = context;
 		this.notifyListener = notifyListener;
 		dbHandler = new DatabaseHandler(context);
 	}
-	
+
 	public NetworkStatusChangeReceiver() {
 		super();
 	}
@@ -159,6 +159,7 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 			AsyncTask<HttpUriRequest, String, HttpResponse> {
 
 		ClassRecord classRecord;
+		boolean recordPosted = false;
 
 		public HttpRecordRequestHandler(ClassRecord classRecord) {
 			super();
@@ -170,50 +171,49 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 			HttpUriRequest httpRequest = httprequests[0];
 			HttpClient client = new DefaultHttpClient();
 
+			HttpResponse response = null;
 			try {
-				HttpResponse response = client.execute(httpRequest);
-				if (response.getEntity() != null)
-					return response;
-			} catch (ClientProtocolException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
+				response = client.execute(httpRequest);
+			} catch (ClientProtocolException e1) {
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			if (response != null && response.getEntity() != null) {
+				// Mark the report sent in the db by record
+				if (response.getStatusLine().getStatusCode() == 200) {
+					StringBuffer result = new StringBuffer();
+					BufferedReader rd;
+					try {
+						rd = new BufferedReader(new InputStreamReader(response
+								.getEntity().getContent()));
+						String line = "";
+						while ((line = rd.readLine()) != null) {
+							result.append(line);
+						}
+						JSONObject mainJsonObj = new JSONObject(
+								result.toString());
+						if (mainJsonObj.get("status").equals("SUCCESS")) {
+							recordPosted = true;
+						}
+					} catch (IllegalStateException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 			return null;
 		}
 
 		protected void onPostExecute(HttpResponse response) {
-			// Mark the report sent in the db by record
-			if (response != null
-					&& response.getStatusLine().getStatusCode() == 200) {
-				Toast.makeText(context, "Posted record successfully",
-						Toast.LENGTH_SHORT).show();
-				StringBuffer result = new StringBuffer();
-				BufferedReader rd;
-				try {
-					rd = new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent()));
-					String line = "";
-					while ((line = rd.readLine()) != null) {
-						result.append(line);
-					}
-					JSONObject mainJsonObj = new JSONObject(result.toString());
-					if (mainJsonObj.get("status").equals("SUCCESS")) {
-						dbHandler.markClassRecordNotification(classRecord
-								.getStartTime());
-						classRecords.remove(classRecord);
-						notifyListener.notifyView();
-					}
-				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			if(recordPosted) {
+				dbHandler.markClassRecordNotification(classRecord
+						.getStartTime());
+				classRecords.remove(classRecord);
+				notifyListener.notifyView();
 			}
 		}
 	}

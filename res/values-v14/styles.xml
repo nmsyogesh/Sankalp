@@ -5,10 +5,10 @@
         AppBaseTheme from BOTH res/values/styles.xml and
         res/values-v11/styles.xml on API 14+ devices.
     -->
-    <style name="MyActionBarLogo" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="MyActionBarLogo" parent="@android:style/Theme.Holo.Light.DarkActionBar">
         <!-- API 14 theme customizations can go here. -->
-        <item name="logo">@drawable/logo</item>
-        <item name="displayOptions">useLogo|showHome</item>
+        <item name="android:logo">@drawable/logo</item>
+        <item name="android:displayOptions">useLogo|showHome</item> 
     </style>
 
 </resources>

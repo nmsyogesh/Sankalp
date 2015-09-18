@@ -2,10 +2,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/rectangle"
     android:gravity="center"
     android:orientation="vertical"
-    android:background="@drawable/rectangle"
     tools:context=".LoginActivity" >
+    <TextView android:id="@+id/errorView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        />
 
     <TextView
         android:layout_width="wrap_content"
@@ -28,9 +33,9 @@
         android:id="@+id/inputParam"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="10dp"
         android:background="@drawable/rectangle"
         android:padding="10dp"
-        android:layout_margin="10dp"
         android:singleLine="true" />
 
     <EditText
@@ -38,10 +43,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:padding="10dp"
         android:background="@drawable/rectangle"
         android:hint="Your password here!"
-        android:inputType="textPassword" />
+        android:inputType="textPassword"
+        android:padding="10dp" />
 
     <Button
         android:id="@+id/loginButton"
@@ -52,12 +57,20 @@
         android:background="#16a085"
         android:text="LOGIN!!" />
 
+    <ImageView
+        android:id="@+id/fb_login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:clickable="true"
+        android:src="@drawable/fb_logo" />
+
     <TextView
         android:id="@+id/volunteerIdHelp"
         android:layout_width="150dp"
         android:layout_height="50dp"
-        android:layout_marginTop="20dp"
         android:layout_gravity="bottom|right"
+        android:layout_marginTop="20dp"
         android:text="*VolunteerId is combination of 4 digit batch + 2 UpperCaseLetter branch + 3 digit Roll No."
         android:textSize="10sp" />
 

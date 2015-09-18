@@ -5,5 +5,6 @@ public enum RegistrationStage {
 	EMAIL,
 	VOLUNTEERID,
 	UNREGISTERED,
-	LOGIN;
+	LOGIN,
+	GOOGLE_LOGIN, FACEBOOK_LOGIN;
 }

@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name" translatable="false">Sankalp</string>
+    <string name="facebook_app_id">1680530872177392</string>
     <string name="action_settings" translatable="false">Settings</string>
     <string name="directions" translatable="false">Create a account through Register button at the start Page. Make sure to remember the password as 
         we don\'t have a password retrival mechanism in place. After loggin the app, You can browse through tabs.\n

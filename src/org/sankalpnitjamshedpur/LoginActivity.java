@@ -3,6 +3,9 @@ package org.sankalpnitjamshedpur;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.apache.http.HttpResponse;
@@ -25,10 +28,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.Signature;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -36,9 +44,19 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
 
 public class LoginActivity extends Activity implements OnClickListener,
 		UserAuthenticationActivity {
@@ -51,10 +69,16 @@ public class LoginActivity extends Activity implements OnClickListener,
 	boolean error = false;
 	TextView volunteerIdHelp;
 	ProgressDialog progressDialog;
+	TextView errorView;
+
+	private ImageView fb_login_initiator;
+
+	private CallbackManager callbackManager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		FacebookSdk.sdkInitialize(this.getApplicationContext());
 		setContentView(R.layout.login_page);
 
 		if (SharedPreferencesKey.getBooleanFromSharedPreferences(
@@ -62,23 +86,90 @@ public class LoginActivity extends Activity implements OnClickListener,
 				getApplicationContext())) {
 			startHomePageActivityWithUser();
 			finish();
+			return;
 		}
-
-		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
-				.permitAll().build();
-		StrictMode.setThreadPolicy(policy);
 
 		String registeredType = getIntent().getStringExtra(
 				LoginConstants.KEY_REGISTERED_TYPE);
 
+		errorView = (TextView) findViewById(R.id.errorView);
+		errorView.setVisibility(View.VISIBLE);
 		inputParam = (EditText) findViewById(R.id.inputParam);
 		password = (EditText) findViewById(R.id.password);
 		loginButton = (Button) findViewById(R.id.loginButton);
+		fb_login_initiator = (ImageView) findViewById(R.id.fb_login);
+		fb_login_initiator.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				LoginManager.getInstance().logInWithReadPermissions(
+						LoginActivity.this, Arrays.asList("email"));
+			}
+		});
+
 		loginOptionSpinner = (Spinner) findViewById(R.id.login_option);
 		volunteerIdHelp = (TextView) findViewById(R.id.volunteerIdHelp);
-		loginButton.setOnClickListener(this);
 		initiateErrorListeners();
-		String volunteerId = null;
+
+		callbackManager = CallbackManager.Factory.create();
+
+		LoginManager.getInstance().registerCallback(callbackManager,
+				new FacebookCallback<LoginResult>() {
+
+					@Override
+					public void onSuccess(LoginResult loginResult) {
+						GraphRequest request = GraphRequest.newMeRequest(
+								loginResult.getAccessToken(),
+								new GraphRequest.GraphJSONObjectCallback() {
+									@Override
+									public void onCompleted(JSONObject user,
+											GraphResponse response) {
+										if (user.optString("email").isEmpty()) {
+											errorView
+													.setError("No Email found for facebook user");
+											return;
+										}
+										HttpRequestHandler requestHandler = new HttpRequestHandler(
+												LoginActivity.this,
+												RegistrationStage.FACEBOOK_LOGIN);
+										progressDialog = ProgressDialog.show(
+												getApplicationContext(),
+												"Please Wait",
+												"We are logging you in!!");
+										progressDialog.setCancelable(true);
+										Log.v("user details",
+												response.toString());
+										Log.i("Login",
+												"user "
+														+ user.optString("email")
+														+ " has logged in through facebook");
+										requestHandler
+												.execute(getHttpRegistrationGetRequest(
+														user.optString("email")
+																.toLowerCase(),
+														RemoteDatabaseConfiguration.KEY_USER_EMAIL_ID));
+										Log.i("LOGIN",
+												"generated login request for "
+														+ user.optString("email"));
+
+										LoginManager.getInstance().logOut();
+									}
+								});
+						Bundle parameters = new Bundle();
+						parameters.putString("fields", "email");
+						request.setParameters(parameters);
+						request.executeAsync();
+					}
+
+					@Override
+					public void onCancel() {
+						errorView.setError("User canceleed facebook login!!");
+					}
+
+					@Override
+					public void onError(FacebookException error) {
+						errorView.setError("Facebook login error!!");
+					}
+				});
 
 		ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter
 				.createFromResource(this, R.array.login_options,
@@ -128,7 +219,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 
 					@Override
 					public void onNothingSelected(AdapterView<?> parent) {
-						// TODO Auto-generated method stub
+
 					}
 				});
 
@@ -144,6 +235,25 @@ public class LoginActivity extends Activity implements OnClickListener,
 			}
 			String text = getIntent().getStringExtra(registeredType);
 			inputParam.setText(text);
+		}
+		showHashKey(this);
+	}
+
+	public void showHashKey(Context context) {
+		try {
+			PackageInfo info = context.getPackageManager().getPackageInfo(
+					"org.sankalpnitjamshedpur", PackageManager.GET_SIGNATURES); // Your
+																				// package
+																				// name
+																				// here
+			for (Signature signature : info.signatures) {
+				MessageDigest md = MessageDigest.getInstance("SHA");
+				md.update(signature.toByteArray());
+				Log.i("KeyHash:",
+						Base64.encodeToString(md.digest(), Base64.DEFAULT));
+			}
+		} catch (NameNotFoundException e) {
+		} catch (NoSuchAlgorithmException e) {
 		}
 	}
 
@@ -163,7 +273,6 @@ public class LoginActivity extends Activity implements OnClickListener,
 
 			@Override
 			public void afterTextChanged(Editable s) {
-				// TODO Auto-generated method stub
 				inputParam.setError(null);
 
 				try {
@@ -213,6 +322,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 
 	@Override
 	public void onClick(View v) {
+		errorView.setError(null);
 		if (v == loginButton) {
 			checkfields();
 			if (error) {
@@ -241,7 +351,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 			progressDialog = ProgressDialog.show(this, "Please Wait",
 					"We are logging you in!!");
 			progressDialog.setCancelable(true);
-		}
+		} 
 	}
 
 	private void checkfields() {
@@ -267,26 +377,28 @@ public class LoginActivity extends Activity implements OnClickListener,
 	@Override
 	public void onRequestResult(HttpResponse httpResponse,
 			RegistrationStage registrationStage) {
-		progressDialog.dismiss();
+		if (progressDialog != null)
+			progressDialog.dismiss();
 		if (httpResponse == null) {
 			Toast.makeText(getApplicationContext(),
 					"Login failed. Please check Internet connectivity.",
 					Toast.LENGTH_LONG).show();
 			return;
 		}
-		if (RegistrationStage.LOGIN == registrationStage) {
-			StringBuffer result = new StringBuffer();
-			BufferedReader rd;
-			try {
-				rd = new BufferedReader(new InputStreamReader(httpResponse
-						.getEntity().getContent()));
 
-				String line = "";
-				while ((line = rd.readLine()) != null) {
-					result.append(line);
-				}
+		StringBuffer result = new StringBuffer();
+		BufferedReader rd;
+		try {
+			rd = new BufferedReader(new InputStreamReader(httpResponse
+					.getEntity().getContent()));
 
-				JSONObject mainJsonObj = new JSONObject(result.toString());
+			String line = "";
+			while ((line = rd.readLine()) != null) {
+				result.append(line);
+			}
+
+			JSONObject mainJsonObj = new JSONObject(result.toString());
+			if (RegistrationStage.LOGIN == registrationStage) {
 				if (mainJsonObj.length() == 0) {
 					if (option.equalsIgnoreCase("Volunteer Id")) {
 						Toast.makeText(getApplicationContext(),
@@ -301,38 +413,59 @@ public class LoginActivity extends Activity implements OnClickListener,
 								"No user Exists with this Mobile No",
 								Toast.LENGTH_SHORT).show();
 					}
-				} else {
-					loggedInUser = checkPasswordAndCreateUser(mainJsonObj);
-					if (loggedInUser != null) {
-						setPrefernces();
-						startHomePageActivityWithUser();
-					} else {
-						Toast.makeText(getApplicationContext(),
-								"Wrong password!! try again", Toast.LENGTH_LONG)
-								.show();
-					}
+					return;
 				}
-			} catch (IllegalStateException e2) {
-				e2.printStackTrace();
-			} catch (IOException e2) {
-				e2.printStackTrace();
-			} catch (JSONException e1) {
-				e1.printStackTrace();
+			} else if (registrationStage == RegistrationStage.GOOGLE_LOGIN
+					|| registrationStage == RegistrationStage.FACEBOOK_LOGIN) {
+				if (mainJsonObj.length() == 0) {
+					Toast.makeText(getApplicationContext(),
+							"No user Exists with this Email",
+							Toast.LENGTH_SHORT).show();
+					return;
+				}
 			}
+
+			if (registrationStage == RegistrationStage.GOOGLE_LOGIN) {
+				loggedInUser = checkPasswordAndCreateUser(mainJsonObj, false);
+			} else if (registrationStage == RegistrationStage.FACEBOOK_LOGIN) {
+				loggedInUser = checkPasswordAndCreateUser(mainJsonObj, false);
+			} else if (registrationStage == RegistrationStage.LOGIN) {
+				loggedInUser = checkPasswordAndCreateUser(mainJsonObj, true);
+			}
+
+			if (loggedInUser != null) {
+				Log.i("LOGIN",
+						"login successful for " + loggedInUser.getEmailId());
+				setPrefernces();
+				startHomePageActivityWithUser();
+			} else {
+				Toast.makeText(getApplicationContext(),
+						"Wrong password!! try again", Toast.LENGTH_LONG).show();
+			}
+
+		} catch (IllegalStateException e2) {
+			e2.printStackTrace();
+		} catch (IOException e2) {
+			e2.printStackTrace();
+		} catch (JSONException e1) {
+			e1.printStackTrace();
 		}
 	}
 
-	private User checkPasswordAndCreateUser(JSONObject mainJsonObj)
-			throws JSONException {
+	private User checkPasswordAndCreateUser(JSONObject mainJsonObj,
+			boolean checkPassword) throws JSONException {
 		Iterator<String> keysIterator = mainJsonObj.keys();
 		if (keysIterator.hasNext()) {
 			JSONObject dataObject = mainJsonObj.getJSONObject(keysIterator
 					.next());
-			if (!passwordText.equals(dataObject.getString("Password"))) {
+
+			if (checkPassword
+					&& !passwordText.equals(dataObject.getString("Password"))) {
+				Log.e("LOGIN",
+						"wrong password for " + dataObject.getString("EmailId"));
 				return null;
 			}
 
-			// TODO branch value is not coming.
 			return new User(dataObject.getString("Name"),
 					Integer.parseInt(dataObject.getString("RollNo")),
 					dataObject.getString("EmailId"),
@@ -385,5 +518,18 @@ public class LoginActivity extends Activity implements OnClickListener,
 
 	public Context getApplicationContext() {
 		return this;
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int responseCode,
+			Intent intent) {
+		super.onActivityResult(requestCode, responseCode, intent);
+		callbackManager.onActivityResult(requestCode, responseCode, intent);
+	}
+
+	@Override
+	public void finish() {
+		LoginManager.getInstance().logOut();
+		super.finish();
 	}
 }

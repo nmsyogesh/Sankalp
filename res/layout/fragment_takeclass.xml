@@ -9,8 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="5dp"
-        android:theme="@style/Theme.AppCompat.Light" >
+        android:padding="5dp" >
 
         <Button
             android:id="@+id/buttonClassFunction"
