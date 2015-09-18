@@ -77,7 +77,7 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 		}
 	}
 
-	public boolean isConnected(Context context) {
+	public static boolean isConnected(Context context) {
 		ConnectivityManager cm = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo netInfo = cm.getActiveNetworkInfo();

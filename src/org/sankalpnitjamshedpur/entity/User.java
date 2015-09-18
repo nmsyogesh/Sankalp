@@ -27,7 +27,7 @@ public class User {
 		this.emailId = emailId.toLowerCase();
 		this.batch = batch;
 		this.password = password;
-		this.volunteerId = String.format("%d%s%d", batch, branch, rollNo);
+		this.volunteerId = String.format("%d%s%03d", batch, branch, rollNo);
 	}
 
 	public String getName() {

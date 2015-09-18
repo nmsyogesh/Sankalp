@@ -7,7 +7,7 @@ import android.content.Context;
 
 public interface UserAuthenticationActivity {
 	
-	public void onRequestResult(HttpResponse httpResponse, RegistrationStage registrationStage);
+	public void onRequestResult(StringBuffer response, RegistrationStage registrationStage);
 	
 	public Context getApplicationContext();
 

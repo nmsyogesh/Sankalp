@@ -18,6 +18,7 @@ import org.sankalpnitjamshedpur.db.RegistrationStage;
 import org.sankalpnitjamshedpur.db.RemoteDatabaseConfiguration;
 import org.sankalpnitjamshedpur.entity.User;
 import org.sankalpnitjamshedpur.helper.LoginConstants;
+import org.sankalpnitjamshedpur.helper.NetworkStatusChangeReceiver;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
 import org.sankalpnitjamshedpur.helper.ValidationException;
 import org.sankalpnitjamshedpur.helper.Validator;
@@ -33,8 +34,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -97,6 +96,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 		inputParam = (EditText) findViewById(R.id.inputParam);
 		password = (EditText) findViewById(R.id.password);
 		loginButton = (Button) findViewById(R.id.loginButton);
+		loginButton.setOnClickListener(this);
 		fb_login_initiator = (ImageView) findViewById(R.id.fb_login);
 		fb_login_initiator.setOnClickListener(new OnClickListener() {
 			@Override
@@ -108,7 +108,6 @@ public class LoginActivity extends Activity implements OnClickListener,
 
 		loginOptionSpinner = (Spinner) findViewById(R.id.login_option);
 		volunteerIdHelp = (TextView) findViewById(R.id.volunteerIdHelp);
-		initiateErrorListeners();
 
 		callbackManager = CallbackManager.Factory.create();
 
@@ -124,8 +123,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 									public void onCompleted(JSONObject user,
 											GraphResponse response) {
 										if (user.optString("email").isEmpty()) {
-											errorView
-													.setError("No Email found for facebook user");
+											setError("No Email found for facebook user");
 											return;
 										}
 										HttpRequestHandler requestHandler = new HttpRequestHandler(
@@ -162,12 +160,12 @@ public class LoginActivity extends Activity implements OnClickListener,
 
 					@Override
 					public void onCancel() {
-						errorView.setError("User canceleed facebook login!!");
+						setError("User canceleed facebook login!!");
 					}
 
 					@Override
 					public void onError(FacebookException error) {
-						errorView.setError("Facebook login error!!");
+						setError("Facebook login error!!");
 					}
 				});
 
@@ -238,14 +236,22 @@ public class LoginActivity extends Activity implements OnClickListener,
 		}
 		showHashKey(this);
 	}
+	
+	public void setError(String errorText) {
+		errorView.setError("");
+		errorView.setText(errorView.getText() + "\n" + errorText);
+	}
+
+	private void removeError() {
+		error = false;
+		errorView.setText(null);
+		errorView.setError(null);
+	}
 
 	public void showHashKey(Context context) {
 		try {
 			PackageInfo info = context.getPackageManager().getPackageInfo(
-					"org.sankalpnitjamshedpur", PackageManager.GET_SIGNATURES); // Your
-																				// package
-																				// name
-																				// here
+					"org.sankalpnitjamshedpur", PackageManager.GET_SIGNATURES); 
 			for (Signature signature : info.signatures) {
 				MessageDigest md = MessageDigest.getInstance("SHA");
 				md.update(signature.toByteArray());
@@ -256,83 +262,55 @@ public class LoginActivity extends Activity implements OnClickListener,
 		} catch (NoSuchAlgorithmException e) {
 		}
 	}
-
-	private void initiateErrorListeners() {
-
-		inputParam.addTextChangedListener(new TextWatcher() {
-
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
+	
+	private void validateInputParam() {
+		try {
+			if (option.equalsIgnoreCase("Email Id")) {
+				Validator
+						.validateEmail(inputParam.getText().toString());
+			} else if (option.equalsIgnoreCase("Volunteer Id")) {
+				Validator.validateVolunteerId(inputParam.getText()
+						.toString());
+			} else if (option.equalsIgnoreCase("Mobile No")) {
+				Validator.validateMobileNo(inputParam.getText()
+						.toString());
 			}
-
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {
-			}
-
-			@Override
-			public void afterTextChanged(Editable s) {
-				inputParam.setError(null);
-
-				try {
-					if (option.equalsIgnoreCase("Email Id")) {
-						Validator
-								.validateEmail(inputParam.getText().toString());
-					} else if (option.equalsIgnoreCase("Volunteer Id")) {
-						Validator.validateVolunteerId(inputParam.getText()
-								.toString());
-					} else if (option.equalsIgnoreCase("Mobile No")) {
-						Validator.validateMobileNo(inputParam.getText()
-								.toString());
-					}
-					error = false;
-				} catch (ValidationException e) {
-					error = true;
-					inputParam.setError(e.getMessage());
-				}
-			}
-
-		});
-
-		password.addTextChangedListener(new TextWatcher() {
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {
-			}
-
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
-			}
-
-			@Override
-			public void afterTextChanged(Editable s) {
-				password.setError(null);
-				try {
-					Validator.validatePassword(password.getText().toString());
-					error = false;
-				} catch (ValidationException e) {
-					error = true;
-					password.setError(e.getMessage());
-				}
-			}
-		});
+		} catch (ValidationException e) {
+			error = true;
+			setError(e.getMessage());
+		}
+	}
+	
+	private void validatePassword() {
+		try {
+			Validator.validatePassword(password.getText().toString());
+		} catch (ValidationException e) {
+			error = true;
+			setError(e.getMessage());
+		}
 	}
 
 	@Override
 	public void onClick(View v) {
-		errorView.setError(null);
+		removeError();
+		
 		if (v == loginButton) {
-			checkfields();
+			System.out.println("LOGIN Clicked");
+			validateInputParam();
+			validatePassword();
 			if (error) {
 				Toast.makeText(getApplicationContext(),
 						"Please Correct Login Details", Toast.LENGTH_SHORT)
 						.show();
 				return;
 			}
+			if(!NetworkStatusChangeReceiver.isConnected(this)) {
+				setError("No internet connectivity.");
+				return;
+			}
 			String inputString = inputParam.getText().toString();
 			passwordText = password.getText().toString();
+			
 			HttpRequestHandler requestHandler = new HttpRequestHandler(this,
 					RegistrationStage.LOGIN);
 			if (option.equalsIgnoreCase("Volunteer Id")) {
@@ -354,13 +332,6 @@ public class LoginActivity extends Activity implements OnClickListener,
 		} 
 	}
 
-	private void checkfields() {
-		// Setting text boxes with their values so that their onTextChanged
-		// Method is triggered
-		inputParam.setText(inputParam.getText().toString());
-		password.setText(password.getText().toString());
-	}
-
 	private HttpUriRequest getHttpRegistrationGetRequest(String value,
 			String fieldId) {
 
@@ -375,28 +346,15 @@ public class LoginActivity extends Activity implements OnClickListener,
 	}
 
 	@Override
-	public void onRequestResult(HttpResponse httpResponse,
+	public void onRequestResult(StringBuffer result,
 			RegistrationStage registrationStage) {
 		if (progressDialog != null)
 			progressDialog.dismiss();
-		if (httpResponse == null) {
-			Toast.makeText(getApplicationContext(),
-					"Login failed. Please check Internet connectivity.",
-					Toast.LENGTH_LONG).show();
+		if (result == null) {
+			setError("Error while login, Try again!!");
 			return;
 		}
-
-		StringBuffer result = new StringBuffer();
-		BufferedReader rd;
 		try {
-			rd = new BufferedReader(new InputStreamReader(httpResponse
-					.getEntity().getContent()));
-
-			String line = "";
-			while ((line = rd.readLine()) != null) {
-				result.append(line);
-			}
-
 			JSONObject mainJsonObj = new JSONObject(result.toString());
 			if (RegistrationStage.LOGIN == registrationStage) {
 				if (mainJsonObj.length() == 0) {
@@ -441,12 +399,9 @@ public class LoginActivity extends Activity implements OnClickListener,
 			} else {
 				Toast.makeText(getApplicationContext(),
 						"Wrong password!! try again", Toast.LENGTH_LONG).show();
+				setError("Wrong password!!");
 			}
 
-		} catch (IllegalStateException e2) {
-			e2.printStackTrace();
-		} catch (IOException e2) {
-			e2.printStackTrace();
 		} catch (JSONException e1) {
 			e1.printStackTrace();
 		}

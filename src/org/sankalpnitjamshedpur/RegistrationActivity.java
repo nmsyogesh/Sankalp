@@ -64,11 +64,11 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.registration_page);
-		
+
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
 				.permitAll().build();
 		StrictMode.setThreadPolicy(policy);
-		
+
 		dbHandler = new DatabaseHandler(this);
 		registerButton = (Button) findViewById(R.id.registerButton);
 		nameBox = (EditText) findViewById(R.id.name);
@@ -179,7 +179,8 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 	private HttpUriRequest getHttpRegistrationPostRequest(
 			User userToBeRegistered) {
 
-		HttpPost postRequest = new HttpPost(RemoteDatabaseConfiguration.USER_URL);
+		HttpPost postRequest = new HttpPost(
+				RemoteDatabaseConfiguration.USER_URL);
 		postRequest.setHeader("User-Agent",
 				RemoteDatabaseConfiguration.USER_AGENT);
 
@@ -226,45 +227,36 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 				RemoteDatabaseConfiguration.KEY_USER_BATCH, String
 						.valueOf(userToBeRegistered.getBatch())));
 		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_USER_VOLUNTEERID, userToBeRegistered
-						.getVolunteerId()));
+				RemoteDatabaseConfiguration.KEY_USER_VOLUNTEERID,
+				userToBeRegistered.getVolunteerId()));
 		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_USER_EMAIL_ID, userToBeRegistered
-						.getEmailId()));
+				RemoteDatabaseConfiguration.KEY_USER_EMAIL_ID,
+				userToBeRegistered.getEmailId()));
 		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_USER_PASSWORD, userToBeRegistered
-						.getPassword()));
+				RemoteDatabaseConfiguration.KEY_USER_PASSWORD,
+				userToBeRegistered.getPassword()));
 		return urlParameters;
 	}
 
-	public void onRequestResult(HttpResponse httpResponse,
+	public void onRequestResult(StringBuffer result,
 			RegistrationStage registrationStage) {
-		if (httpResponse == null) {
+		if (progressDialog != null)
 			progressDialog.dismiss();
-			Toast.makeText(getApplicationContext(),
-					"Registration failed. Please check Internet connectivity.",
-					Toast.LENGTH_LONG).show();
+		if (result == null) {
 			return;
 		}
-		StringBuffer result = new StringBuffer();
-		BufferedReader rd;
+
+		JSONObject mainJsonObj;
 		try {
-			rd = new BufferedReader(new InputStreamReader(httpResponse
-					.getEntity().getContent()));
+			mainJsonObj = new JSONObject(result.toString());
 
-			String line = "";
-			while ((line = rd.readLine()) != null) {
-				result.append(line);
-			}
-
-			JSONObject mainJsonObj = new JSONObject(result.toString());
 			if (registrationStage == RegistrationStage.UNREGISTERED) {
 
 				if (mainJsonObj.get("status").equals("SUCCESS")) {
 					registerUser(mainJsonObj);
 					progressDialog.dismiss();
-					Toast.makeText(getApplicationContext(),
-							"Yippppiieeee!!!!!", Toast.LENGTH_LONG).show();
+					Toast.makeText(getApplicationContext(), "Yippppiieeee!!!!!",
+							Toast.LENGTH_LONG).show();
 					startHomePageActivityWithUser();
 				}
 			} else if (registrationStage == RegistrationStage.EMAIL) {
@@ -273,11 +265,9 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 					if (!checkUserRegistrationFinalStatusAndRegister()) {
 						HttpRequestHandler requestHandler = new HttpRequestHandler(
 								this, RegistrationStage.MOBILENO);
-						requestHandler
-								.execute(getHttpRegistrationGetRequest(
-										String.valueOf(userToBeRegistered
-												.getMobileNo()),
-										RemoteDatabaseConfiguration.KEY_USER_MOBILE_NO));
+						requestHandler.execute(getHttpRegistrationGetRequest(
+								String.valueOf(userToBeRegistered.getMobileNo()),
+								RemoteDatabaseConfiguration.KEY_USER_MOBILE_NO));
 					}
 				} else {
 					progressDialog.dismiss();
@@ -304,8 +294,8 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 					startLoginActivity(
 							String.valueOf(userToBeRegistered.getMobileNo()),
 							LoginConstants.KEY_MOBILENO);
-					Toast.makeText(getApplicationContext(),
-							"Mobile number Exists", Toast.LENGTH_SHORT).show();
+					Toast.makeText(getApplicationContext(), "Mobile number Exists",
+							Toast.LENGTH_SHORT).show();
 				}
 			} else if (registrationStage == RegistrationStage.VOLUNTEERID) {
 				if (mainJsonObj.length() == 0) {
@@ -315,18 +305,13 @@ public class RegistrationActivity extends Activity implements OnClickListener,
 					startLoginActivity(userToBeRegistered.getVolunteerId(),
 							LoginConstants.KEY_VOLUNTEERID);
 					Toast.makeText(getApplicationContext(),
-							"VolunteerId exists!! Please Login",
-							Toast.LENGTH_SHORT).show();
+							"VolunteerId exists!! Please Login", Toast.LENGTH_SHORT)
+							.show();
 					progressDialog.dismiss();
 				}
 			}
-
-		} catch (IllegalStateException e2) {
-			e2.printStackTrace();
-		} catch (IOException e2) {
-			e2.printStackTrace();
-		} catch (JSONException e1) {
-			e1.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
 
 	}
