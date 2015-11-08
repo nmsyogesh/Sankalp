@@ -6,28 +6,21 @@ public class User {
 	private String emailId;
 	private int batch;
 	private String branch;
-	private String password;
 	private long mobileNo;
 	private String volunteerId;	
+	private String securityToken;	
 
-	public String getVolunteerId() {
-		return volunteerId;
-	}
-
-	public void setVolunteerId(String volunteerId) {
-		this.volunteerId = volunteerId;
-	}
 
 	public User(String name, int rollNo, String emailId, int batch, String branch,
-			String password, long mobileNo) {
+		long mobileNo, String volunteerId, String securityToken) {
 		this.branch = branch.toUpperCase();
 		this.mobileNo = mobileNo;
 		this.name = name;
 		this.rollNo = rollNo;
-		this.emailId = emailId.toLowerCase();
+		this.emailId = emailId.toUpperCase();
 		this.batch = batch;
-		this.password = password;
-		this.volunteerId = String.format("%d%s%03d", batch, branch, rollNo);
+		this.volunteerId = (volunteerId!=null)?volunteerId : String.format("%d%s%03d", batch, branch, rollNo);
+		this.securityToken = securityToken;
 	}
 
 	public String getName() {
@@ -62,14 +55,6 @@ public class User {
 		this.batch = batch;
 	}
 
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String pass) {
-		this.password = pass;
-	}
-
 	public long getMobileNo() {
 		return mobileNo;
 	}
@@ -86,4 +71,19 @@ public class User {
 		this.branch = branch;
 	}
 
+	public String getSecurityToken() {
+		return securityToken;
+	}
+
+	public void setSecurityToken(String securityToken) {
+		this.securityToken = securityToken;
+	}
+
+	public String getVolunteerId() {
+		return volunteerId;
+	}
+
+	public void setVolunteerId(String volunteerId) {
+		this.volunteerId = volunteerId;
+	}
 }

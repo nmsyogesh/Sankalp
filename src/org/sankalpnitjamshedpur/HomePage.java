@@ -1,6 +1,7 @@
 package org.sankalpnitjamshedpur;
 
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
+import org.sankalpnitjamshedpur.helper.TAGS;
 import org.sankalpnitjamshedpur.tabs.TabPagerAdapter;
 
 import android.app.ActionBar;
@@ -27,7 +28,7 @@ public class HomePage extends FragmentActivity implements
 	private ActionBar actionBar;
 	// Tab titles
 	private String[] tabs = { "Profile", "Take a Class", "Report a Issue",
-			"Class records" };
+			"Class records", "Marks Entry" };
 
 	Dialog dialog;
 
@@ -113,7 +114,7 @@ public class HomePage extends FragmentActivity implements
 												Class.forName("org.sankalpnitjamshedpur.LoginActivity"));
 										SharedPreferencesKey
 												.putInSharedPreferences(
-														SharedPreferencesKey.KEY_IS_LOGGED_IN,
+														TAGS.KEY_IS_LOGGED_IN,
 														false,
 														getApplicationContext());
 										startActivity(intent);

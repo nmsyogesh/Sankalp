@@ -8,7 +8,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -19,10 +18,11 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.protocol.HTTP;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.sankalpnitjamshedpur.db.DatabaseHandler;
-import org.sankalpnitjamshedpur.db.RemoteDatabaseConfiguration;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
 import org.sankalpnitjamshedpur.tabs.ClassRecordsFragment;
 
@@ -39,6 +39,7 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 	public Context context;
 	public DatabaseHandler dbHandler;
 	public ClassRecordsFragment notifyListener;
+	public String securityToken;
 
 	public NetworkStatusChangeReceiver(Context context,
 			ClassRecordsFragment notifyListener) {
@@ -88,69 +89,44 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 		this.notifyListener = notifyListener;
 	}
 
-	public static HttpUriRequest getHttpRecordPostRequest(
-			ClassRecord classRecord) {
-		HttpPost postRequest = new HttpPost(
-				RemoteDatabaseConfiguration.RECORD_URL);
-		postRequest.setHeader("User-Agent",
-				RemoteDatabaseConfiguration.USER_AGENT);
+	private HttpUriRequest getHttpRecordPostRequest(ClassRecord classRecord) {
+		HttpPost postRequest = new HttpPost(TAGS.VOLUNTEERS_RECORD_URL);
 
 		try {
 			postRequest.setEntity(new UrlEncodedFormEntity(
-					getRecordParameters(classRecord)));
+					getRecordParameters(classRecord), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		postRequest.setHeader("Authorization",
-				RemoteDatabaseConfiguration.getApiKey());
-
 		return postRequest;
 	}
 
-	static List<NameValuePair> getRecordParameters(ClassRecord classRecord) {
+	private List<NameValuePair> getRecordParameters(ClassRecord classRecord) {
 		List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_RECORD_CENTRE_NO, String
-						.valueOf(classRecord.getCentreNo())));
-		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_RECORD_VOLUNTEERID, classRecord
-						.getVolunteerId()));
-
-		long duration = classRecord.getEndTime() - classRecord.getStartTime();
+		urlParameters.add(new BasicNameValuePair(TAGS.KEY_CENTRE_ID, String
+				.valueOf(classRecord.getCentreNo())));
+		urlParameters.add(new BasicNameValuePair(TAGS.KEY_VOLUNTEER_ID,
+				classRecord.getVolunteerId()));
 
 		Date date = new Date(classRecord.getStartTime());
-		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_RECORD_START_TIME,
+		urlParameters.add(new BasicNameValuePair(TAGS.KEY_START_TIME,
 				new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(date)));
 		date = new Date(classRecord.getEndTime());
-		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_RECORD_END_TIME,
+		urlParameters.add(new BasicNameValuePair(TAGS.KEY_END_TIME,
 				new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(date)));
-		date = new Date(duration);
-		String durationString = String.format("%02d:%02d:%02d",
-				TimeUnit.MILLISECONDS.toHours(duration),
-				TimeUnit.MILLISECONDS.toMinutes(duration),
-				TimeUnit.MILLISECONDS.toSeconds(duration));
-		urlParameters
-				.add(new BasicNameValuePair(
-						RemoteDatabaseConfiguration.KEY_RECORD_DURATION,
-						durationString));
-
-		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_RECORD_START_LATITUDE, String
-						.valueOf(classRecord.getStartGpsLatitude())));
-		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_RECORD_START_LONGITUDE, String
-						.valueOf(classRecord.getStartGpsLongitude())));
-		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_RECORD_END_LATITUDE, String
-						.valueOf(classRecord.getEndGpsLatitude())));
-		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_RECORD_END_LONGITUDE, String
-						.valueOf(classRecord.getEndGpsLongitude())));
-		urlParameters.add(new BasicNameValuePair(
-				RemoteDatabaseConfiguration.KEY_RECORD_COMMENTS, String
-						.valueOf(classRecord.getComments())));
+		urlParameters.add(new BasicNameValuePair(TAGS.KEY_START_LATITUDE,
+				String.valueOf(classRecord.getStartGpsLatitude())));
+		urlParameters.add(new BasicNameValuePair(TAGS.KEY_START_LONGITUDE,
+				String.valueOf(classRecord.getStartGpsLongitude())));
+		urlParameters.add(new BasicNameValuePair(TAGS.KEY_END_LATITUDE, String
+				.valueOf(classRecord.getEndGpsLatitude())));
+		urlParameters.add(new BasicNameValuePair(TAGS.KEY_END_LONGITUDE, String
+				.valueOf(classRecord.getEndGpsLongitude())));
+		urlParameters.add(new BasicNameValuePair(TAGS.KEY_COMMENTS, String
+				.valueOf(classRecord.getComments())));
+		urlParameters.add(new BasicNameValuePair(TAGS.KEY_SECURITY_TOKEN,
+				SharedPreferencesKey.getStringFromSharedPreferences(
+						TAGS.KEY_SECURITY_TOKEN, "", context)));
 
 		return urlParameters;
 	}
@@ -170,7 +146,12 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 		protected HttpResponse doInBackground(HttpUriRequest... httprequests) {
 			HttpUriRequest httpRequest = httprequests[0];
 			HttpClient client = new DefaultHttpClient();
-
+			client.getParams()
+					.setParameter(
+							CoreProtocolPNames.USER_AGENT,
+							"Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
+			httpRequest.setHeader(HTTP.CONTENT_TYPE,
+					"application/x-www-form-urlencoded;charset=UTF-8");
 			HttpResponse response = null;
 			try {
 				response = client.execute(httpRequest);
@@ -193,7 +174,7 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 						}
 						JSONObject mainJsonObj = new JSONObject(
 								result.toString());
-						if (mainJsonObj.get("status").equals("SUCCESS")) {
+						if (mainJsonObj.getInt(TAGS.KEY_SUCCESS) == 1) {
 							recordPosted = true;
 						}
 					} catch (IllegalStateException e) {
@@ -209,7 +190,7 @@ public class NetworkStatusChangeReceiver extends BroadcastReceiver {
 		}
 
 		protected void onPostExecute(HttpResponse response) {
-			if(recordPosted) {
+			if (recordPosted) {
 				dbHandler.markClassRecordNotification(classRecord
 						.getStartTime());
 				classRecords.remove(classRecord);

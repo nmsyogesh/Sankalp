@@ -5,8 +5,11 @@ import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.sankalpnitjamshedpur.entity.Centre;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
+import org.sankalpnitjamshedpur.entity.StudentClass;
 import org.sankalpnitjamshedpur.entity.User;
+import org.sankalpnitjamshedpur.helper.TAGS;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -19,36 +22,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 	// All Static variables
 	// Database Version
-	private static final int DATABASE_VERSION = 3;
+	private static final int DATABASE_VERSION = 7;
 
 	// Database Name
 	private static final String DATABASE_NAME = "sankalp";
-
 	// Contacts table name
 	private static final String TABLE_CONTACTS = "contactInfo";
 	// Records table name
 	private static final String TABLE_CLASS_RECORDS = "classRecords";
-
-	// Contacts Table Columns names
-	private static final String KEY_NAME = "name";
-	private static final String KEY_ROLLNO = "roll_number";
-	private static final String KEY_BATCH = "batch";
-	private static final String KEY_MOBILE_NO = "mobile_number";
-	private static final String KEY_EMAIL_ID = "email_id";
-	private static final String KEY_BRANCH = "branch";
-	private static final String KEY_PASSWORD = "password";
-	private static final String KEY_VOLUNTEERID = "volunteer_id";
-
-	private static final String KEY_URI_LIST = "listUri";
-	private static final String KEY_START_TIME = "startTime";
-	private static final String KEY_END_TIME = "endTime";
-	private static final String KEY_CENTRE = "centre";
-	private static final String KEY_START_LATITUDE = "startGpsLatitude";
-	private static final String KEY_START_LONGIITUDE = "startGpsLongitude";
-	private static final String KEY_END_LATITUDE = "endGpsLatitude";
-	private static final String KEY_END_LONGIITUDE = "endGpsLongitude";
-	private static final String KEY_SENT_NOTIFICATION = "sentNotification";
-	private static final String KEY_COMMENTS = "comments";
+	// Centres table name
+	private static final String TABLE_CENTRES = "centres";
+	// Centres table name
+	private static final String TABLE_CLASSES = "classes";
 
 	public DatabaseHandler(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -58,30 +43,45 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		String CREATE_CONTACTS_TABLE = "CREATE TABLE " + TABLE_CONTACTS + "("
-				+ KEY_VOLUNTEERID + " TEXT PRIMARY KEY," + KEY_NAME + " TEXT,"
-				+ KEY_ROLLNO + " TEXT," + KEY_BRANCH + " TEXT," + KEY_BATCH
-				+ " INTEGER ," + KEY_EMAIL_ID + " TEXT unique," + KEY_PASSWORD
-				+ " TEXT," + KEY_MOBILE_NO + " INTEGER unique" + ")";
+				+ TAGS.KEY_VOLUNTEER_ID + " TEXT PRIMARY KEY," + TAGS.KEY_NAME
+				+ " TEXT," + TAGS.KEY_ROLLNO + " TEXT," + TAGS.KEY_BRANCH
+				+ " TEXT," + TAGS.KEY_BATCH + " INTEGER ," + TAGS.KEY_EMAIL_ID
+				+ " TEXT unique," + TAGS.KEY_MOBILE_NO + " INTEGER unique, "
+				+ TAGS.KEY_SECURITY_TOKEN + " TEXT" + ")";
 
 		String CREATE_RECORDS_TABLE = "CREATE TABLE " + TABLE_CLASS_RECORDS
-				+ "(" + KEY_START_TIME + " INTEGER PRIMARY KEY," + KEY_URI_LIST
-				+ " TEXT ," + KEY_VOLUNTEERID + " TEXT ," + KEY_END_TIME
-				+ " INTEGER ," + KEY_CENTRE + " INTEGER ," + KEY_START_LATITUDE
-				+ " REAL ," + KEY_START_LONGIITUDE + " REAL ,"
-				+ KEY_END_LATITUDE + " REAL ," + KEY_END_LONGIITUDE + " REAL ,"
-				+ KEY_SENT_NOTIFICATION + " INTEGER ," + KEY_COMMENTS + " TEXT "+")";
+				+ "(" + TAGS.KEY_START_TIME + " INTEGER PRIMARY KEY,"
+				+ TAGS.KEY_URI_LIST + " TEXT ," + TAGS.KEY_VOLUNTEER_ID
+				+ " TEXT ," + TAGS.KEY_END_TIME + " INTEGER ,"
+				+ TAGS.KEY_CENTRE_ID + " INTEGER ," + TAGS.KEY_START_LATITUDE
+				+ " REAL ," + TAGS.KEY_START_LONGITUDE + " REAL ,"
+				+ TAGS.KEY_END_LATITUDE + " REAL ," + TAGS.KEY_END_LONGITUDE
+				+ " REAL ," + TAGS.KEY_SENT_NOTIFICATION + " INTEGER ,"
+				+ TAGS.KEY_COMMENTS + " TEXT " + ")";
+
+		String CREATE_CENTRE_TABLE = "CREATE TABLE " + TABLE_CENTRES + "("
+				+ TAGS.KEY_CENTRE_ID + " INTEGER PRIMARY KEY,"
+				+ TAGS.KEY_CENTRE_NAME + " TEXT " + ")";
+
+		String CREATE_CLASS_TABLE = "CREATE TABLE " + TABLE_CLASSES + "("
+				+ TAGS.KEY_CLASS_ID + " INTEGER PRIMARY KEY,"
+				+ TAGS.KEY_CLASS_NAME + " TEXT " + ")";
 
 		db.execSQL(CREATE_CONTACTS_TABLE);
 		db.execSQL(CREATE_RECORDS_TABLE);
+		db.execSQL(CREATE_CENTRE_TABLE);
+		db.execSQL(CREATE_CLASS_TABLE);
 	}
 
 	// Upgrading database
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		
+
 		// Drop older table if existed
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CONTACTS);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CLASS_RECORDS);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CENTRES);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CLASSES);
 
 		// Create tables again
 		onCreate(db);
@@ -96,17 +96,61 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		ContentValues values = new ContentValues();
-		values.put(KEY_NAME, user.getName()); // Contact Name
-		values.put(KEY_ROLLNO, user.getRollNo());
-		values.put(KEY_MOBILE_NO, user.getMobileNo());
-		values.put(KEY_BATCH, user.getBatch());
-		values.put(KEY_VOLUNTEERID, user.getVolunteerId());
-		values.put(KEY_EMAIL_ID, user.getEmailId());
-		values.put(KEY_BRANCH, user.getBranch());
-		values.put(KEY_PASSWORD, user.getPassword());
+		values.put(TAGS.KEY_NAME, user.getName()); // Contact Name
+		values.put(TAGS.KEY_ROLLNO, user.getRollNo());
+		values.put(TAGS.KEY_MOBILE_NO, user.getMobileNo());
+		values.put(TAGS.KEY_BATCH, user.getBatch());
+		values.put(TAGS.KEY_VOLUNTEER_ID, user.getVolunteerId());
+		values.put(TAGS.KEY_EMAIL_ID, user.getEmailId());
+		values.put(TAGS.KEY_BRANCH, user.getBranch());
 
 		// Inserting Row
 		db.insert(TABLE_CONTACTS, null, values);
+		db.close(); // Closing database connection
+	}
+
+	// Adding new centre
+	public void addCentre(Centre centre) {
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		// if centre already exists
+		Cursor cursor = db.query(TABLE_CENTRES, new String[] {
+				TAGS.KEY_CENTRE_ID, TAGS.KEY_CENTRE_NAME }, TAGS.KEY_CENTRE_ID
+				+ "=? and " + TAGS.KEY_CENTRE_NAME + "=?", new String[] {
+				String.valueOf(centre.getCentreId()), centre.getCentreName() },
+				null, null, null, null);
+		if (cursor != null && cursor.getCount() > 0)
+			return;
+
+		ContentValues values = new ContentValues();
+		values.put(TAGS.KEY_CENTRE_ID, centre.getCentreId()); // Contact Name
+		values.put(TAGS.KEY_CENTRE_NAME, centre.getCentreName());
+
+		// Inserting Row
+		db.insert(TABLE_CENTRES, null, values);
+		db.close(); // Closing database connection
+	}
+
+	// Adding new class
+	public void addClass(StudentClass studentClass) {
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		// if class already exists
+		Cursor cursor = db.query(TABLE_CENTRES, new String[] {
+				TAGS.KEY_CENTRE_ID, TAGS.KEY_CENTRE_NAME }, TAGS.KEY_CENTRE_ID
+				+ "=? and " + TAGS.KEY_CENTRE_NAME + "=?",
+				new String[] { String.valueOf(studentClass.getClassId()),
+						studentClass.getClassName() }, null, null, null, null);
+		if (cursor != null && cursor.getCount() > 0)
+			return;
+
+		ContentValues values = new ContentValues();
+		values.put(TAGS.KEY_CLASS_ID, studentClass.getClassId()); // Contact
+																	// Name
+		values.put(TAGS.KEY_CLASS_NAME, studentClass.getClassName());
+
+		// Inserting Row
+		db.insert(TABLE_CLASSES, null, values);
 		db.close(); // Closing database connection
 	}
 
@@ -115,24 +159,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		ContentValues values = new ContentValues();
-		values.put(KEY_URI_LIST,
+		values.put(TAGS.KEY_URI_LIST,
 				getUriStringFromUriList(classRecord.getUriList()));
-		values.put(KEY_VOLUNTEERID, classRecord.getVolunteerId());
-		values.put(KEY_START_TIME, String.valueOf(classRecord.getStartTime()));
-		values.put(KEY_END_TIME, String.valueOf(classRecord.getEndTime()));
-		values.put(KEY_CENTRE, String.valueOf(classRecord.getCentreNo()));
-		values.put(KEY_START_LATITUDE,
+		values.put(TAGS.KEY_VOLUNTEER_ID, classRecord.getVolunteerId());
+		values.put(TAGS.KEY_START_TIME,
+				String.valueOf(classRecord.getStartTime()));
+		values.put(TAGS.KEY_END_TIME, String.valueOf(classRecord.getEndTime()));
+		values.put(TAGS.KEY_CENTRE_ID,
+				String.valueOf(classRecord.getCentreNo()));
+		values.put(TAGS.KEY_START_LATITUDE,
 				String.valueOf(classRecord.getStartGpsLatitude()));
-		values.put(KEY_START_LONGIITUDE,
+		values.put(TAGS.KEY_START_LONGITUDE,
 				String.valueOf(classRecord.getStartGpsLongitude()));
-		values.put(KEY_END_LATITUDE,
+		values.put(TAGS.KEY_END_LATITUDE,
 				String.valueOf(classRecord.getEndGpsLatitude()));
-		values.put(KEY_END_LONGIITUDE,
+		values.put(TAGS.KEY_END_LONGITUDE,
 				String.valueOf(classRecord.getEndGpsLongitude()));
-		values.put(KEY_SENT_NOTIFICATION,
+		values.put(TAGS.KEY_SENT_NOTIFICATION,
 				classRecord.isSentNotification() ? "1" : "0");
-		values.put(KEY_COMMENTS,
-				classRecord.getComments());
+		values.put(TAGS.KEY_COMMENTS, classRecord.getComments());
 
 		// Inserting Row
 		db.insert(TABLE_CLASS_RECORDS, null, values);
@@ -185,12 +230,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	public ArrayList<ClassRecord> getAllClassRecords(String volunteerId) {
 		ArrayList<ClassRecord> classRecords = new ArrayList<ClassRecord>();
 		SQLiteDatabase db = this.getWritableDatabase();
-		
+
 		Cursor cursor = db.query(TABLE_CLASS_RECORDS, new String[] {
-				KEY_START_TIME, KEY_URI_LIST, KEY_VOLUNTEERID, KEY_END_TIME,
-				KEY_CENTRE, KEY_START_LATITUDE, KEY_START_LONGIITUDE,
-				KEY_END_LATITUDE, KEY_END_LONGIITUDE, KEY_SENT_NOTIFICATION, KEY_COMMENTS },
-				KEY_VOLUNTEERID + "=?",
+				TAGS.KEY_START_TIME, TAGS.KEY_URI_LIST, TAGS.KEY_VOLUNTEER_ID,
+				TAGS.KEY_END_TIME, TAGS.KEY_CENTRE_ID, TAGS.KEY_START_LATITUDE,
+				TAGS.KEY_START_LONGITUDE, TAGS.KEY_END_LATITUDE,
+				TAGS.KEY_END_LONGITUDE, TAGS.KEY_SENT_NOTIFICATION,
+				TAGS.KEY_COMMENTS }, TAGS.KEY_VOLUNTEER_ID + "=?",
 				new String[] { String.valueOf(volunteerId) }, null, null, null,
 				null);
 
@@ -215,13 +261,50 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		return classRecords;
 	}
 
+	public ArrayList<Centre> getListOfCentres() {
+		ArrayList<Centre> centres = new ArrayList<Centre>();
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		Cursor cursor = db.query(TABLE_CENTRES, new String[] {
+				TAGS.KEY_CENTRE_ID, TAGS.KEY_CENTRE_NAME }, null, null, null,
+				null, null, null);
+
+		if (cursor.moveToFirst()) {
+			do {
+				Centre centre = new Centre(cursor.getInt(0),
+						cursor.getString(1));
+				centres.add(centre);
+			} while (cursor.moveToNext());
+		}
+		return centres;
+	}
+
+	public ArrayList<StudentClass> getListOfClasses() {
+		ArrayList<StudentClass> classes = new ArrayList<StudentClass>();
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		Cursor cursor = db.query(TABLE_CLASSES, new String[] {
+				TAGS.KEY_CLASS_ID, TAGS.KEY_CLASS_NAME }, null, null, null,
+				null, null, null);
+
+		if (cursor.moveToFirst()) {
+			do {
+				StudentClass studentClass = new StudentClass(cursor.getInt(0),
+						cursor.getString(1));
+				classes.add(studentClass);
+			} while (cursor.moveToNext());
+		}
+		return classes;
+	}
+
 	// Getting single contact
 	public User getContactByVolunteerId(String volunteerId) {
 		SQLiteDatabase db = this.getReadableDatabase();
 
-		Cursor cursor = db.query(TABLE_CONTACTS, new String[] { KEY_NAME,
-				KEY_ROLLNO, KEY_EMAIL_ID, KEY_BATCH, KEY_BRANCH, KEY_PASSWORD,
-				KEY_MOBILE_NO, KEY_VOLUNTEERID }, KEY_VOLUNTEERID + "=?",
+		Cursor cursor = db.query(TABLE_CONTACTS, new String[] { TAGS.KEY_NAME,
+				TAGS.KEY_ROLLNO, TAGS.KEY_EMAIL_ID, TAGS.KEY_BATCH,
+				TAGS.KEY_BRANCH, TAGS.KEY_MOBILE_NO, TAGS.KEY_VOLUNTEER_ID,
+				TAGS.KEY_SECURITY_TOKEN }, TAGS.KEY_VOLUNTEER_ID + "=?",
 				new String[] { String.valueOf(volunteerId) }, null, null, null,
 				null);
 		if (cursor != null && cursor.getCount() > 0)
@@ -231,9 +314,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		User contact = new User(cursor.getString(0), Integer.parseInt(cursor
 				.getString(1)), cursor.getString(2), Integer.parseInt(cursor
-				.getString(3)), cursor.getString(4), cursor.getString(5),
-				Long.parseLong(cursor.getString(6)));
-		contact.setVolunteerId(cursor.getString(7));
+				.getString(3)), cursor.getString(4), Long.parseLong(cursor
+				.getString(5)), cursor.getString(6), cursor.getString(7));
 		db.close();
 
 		// return contact
@@ -243,9 +325,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	public User getContactByEmailId(String emailId) {
 		SQLiteDatabase db = this.getReadableDatabase();
 
-		Cursor cursor = db.query(TABLE_CONTACTS, new String[] { KEY_NAME,
-				KEY_ROLLNO, KEY_EMAIL_ID, KEY_BATCH, KEY_BRANCH, KEY_PASSWORD,
-				KEY_MOBILE_NO, KEY_VOLUNTEERID }, KEY_EMAIL_ID + "=?",
+		Cursor cursor = db.query(TABLE_CONTACTS, new String[] { TAGS.KEY_NAME,
+				TAGS.KEY_ROLLNO, TAGS.KEY_EMAIL_ID, TAGS.KEY_BATCH,
+				TAGS.KEY_BRANCH, TAGS.KEY_MOBILE_NO, TAGS.KEY_VOLUNTEER_ID,
+				TAGS.KEY_SECURITY_TOKEN }, TAGS.KEY_EMAIL_ID + "=?",
 				new String[] { String.valueOf(emailId) }, null, null, null,
 				null);
 		if (cursor != null && cursor.getCount() > 0)
@@ -255,9 +338,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		User contact = new User(cursor.getString(0), Integer.parseInt(cursor
 				.getString(1)), cursor.getString(2), Integer.parseInt(cursor
-				.getString(3)), cursor.getString(4), cursor.getString(5),
-				Long.parseLong(cursor.getString(6)));
-		contact.setVolunteerId(cursor.getString(7));
+				.getString(3)), cursor.getString(4), Long.parseLong(cursor
+				.getString(5)), cursor.getString(6), cursor.getString(7));
 
 		db.close();
 		// return contact
@@ -267,9 +349,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	public User getContactByMobileNo(long mobileNo) {
 		SQLiteDatabase db = this.getReadableDatabase();
 
-		Cursor cursor = db.query(TABLE_CONTACTS, new String[] { KEY_NAME,
-				KEY_ROLLNO, KEY_EMAIL_ID, KEY_BATCH, KEY_BRANCH, KEY_PASSWORD,
-				KEY_MOBILE_NO, KEY_VOLUNTEERID }, KEY_MOBILE_NO + "=?",
+		Cursor cursor = db.query(TABLE_CONTACTS, new String[] { TAGS.KEY_NAME,
+				TAGS.KEY_ROLLNO, TAGS.KEY_EMAIL_ID, TAGS.KEY_BATCH,
+				TAGS.KEY_BRANCH, TAGS.KEY_MOBILE_NO, TAGS.KEY_VOLUNTEER_ID,
+				TAGS.KEY_SECURITY_TOKEN }, TAGS.KEY_MOBILE_NO + "=?",
 				new String[] { String.valueOf(mobileNo) }, null, null, null,
 				null);
 		if (cursor != null && cursor.getCount() > 0)
@@ -279,9 +362,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		User contact = new User(cursor.getString(0), Integer.parseInt(cursor
 				.getString(1)), cursor.getString(2), Integer.parseInt(cursor
-				.getString(3)), cursor.getString(4), cursor.getString(5),
-				Long.parseLong(cursor.getString(6)));
-		contact.setVolunteerId(cursor.getString(7));
+				.getString(3)), cursor.getString(4), Long.parseLong(cursor
+				.getString(5)), cursor.getString(6), cursor.getString(7));
 
 		db.close();
 		// return contact
@@ -292,10 +374,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getReadableDatabase();
 
 		Cursor cursor = db.query(TABLE_CLASS_RECORDS, new String[] {
-				KEY_START_TIME, KEY_URI_LIST, KEY_VOLUNTEERID, KEY_END_TIME,
-				KEY_CENTRE, KEY_START_LATITUDE, KEY_START_LONGIITUDE,
-				KEY_END_LATITUDE, KEY_END_LONGIITUDE, KEY_SENT_NOTIFICATION, KEY_COMMENTS },
-				KEY_START_TIME + "=?",
+				TAGS.KEY_START_TIME, TAGS.KEY_URI_LIST, TAGS.KEY_VOLUNTEER_ID,
+				TAGS.KEY_END_TIME, TAGS.KEY_CENTRE_ID, TAGS.KEY_START_LATITUDE,
+				TAGS.KEY_START_LONGITUDE, TAGS.KEY_END_LATITUDE,
+				TAGS.KEY_END_LONGITUDE, TAGS.KEY_SENT_NOTIFICATION,
+				TAGS.KEY_COMMENTS }, TAGS.KEY_START_TIME + "=?",
 				new String[] { String.valueOf(startTime) }, null, null, null,
 				null);
 
@@ -339,40 +422,56 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		ContentValues values = new ContentValues();
-		values.put(KEY_NAME, user.getName());
-		values.put(KEY_MOBILE_NO, user.getMobileNo());
-		values.put(KEY_EMAIL_ID, user.getEmailId());
-		values.put(KEY_PASSWORD, user.getPassword());
+		values.put(TAGS.KEY_NAME, user.getName());
+		values.put(TAGS.KEY_MOBILE_NO, user.getMobileNo());
+		values.put(TAGS.KEY_EMAIL_ID, user.getEmailId());
 
 		// updating row
-		return db.update(TABLE_CONTACTS, values, KEY_VOLUNTEERID + " = ?",
+		return db.update(TABLE_CONTACTS, values,
+				TAGS.KEY_VOLUNTEER_ID + " = ?",
 				new String[] { String.valueOf(user.getVolunteerId()) });
 	}
 
 	// Deleting single contact
 	public void deleteContact(User user) {
 		SQLiteDatabase db = this.getWritableDatabase();
-		db.delete(TABLE_CONTACTS, KEY_VOLUNTEERID + " = ?",
+		db.delete(TABLE_CONTACTS, TAGS.KEY_VOLUNTEER_ID + " = ?",
 				new String[] { String.valueOf(user.getVolunteerId()) });
+		db.close();
+	}
+
+	// Deleting single centre
+	public void deleteCentre(int centreId) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		db.delete(TABLE_CENTRES, TAGS.KEY_CENTRE_ID + " = ?",
+				new String[] { String.valueOf(centreId) });
+		db.close();
+	}
+
+	// Deleting single class
+	public void deleteClass(int classId) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		db.delete(TABLE_CLASSES, TAGS.KEY_CLASS_ID + " = ?",
+				new String[] { String.valueOf(classId) });
 		db.close();
 	}
 
 	// Deleting single contact
 	public void deleteClassRecord(long startTime) {
 		SQLiteDatabase db = this.getWritableDatabase();
-		db.delete(TABLE_CLASS_RECORDS, KEY_START_TIME + " = ?",
+		db.delete(TABLE_CLASS_RECORDS, TAGS.KEY_START_TIME + " = ?",
 				new String[] { String.valueOf(startTime) });
 		db.close();
 	}
-	
+
 	public int markClassRecordNotification(long startTime) {
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		ContentValues values = new ContentValues();
-		values.put(KEY_SENT_NOTIFICATION, "1");
+		values.put(TAGS.KEY_SENT_NOTIFICATION, "1");
 		// updating row
-		return db.update(TABLE_CLASS_RECORDS, values, KEY_START_TIME + " = ?",
-				new String[] { String.valueOf(startTime) });
+		return db.update(TABLE_CLASS_RECORDS, values, TAGS.KEY_START_TIME
+				+ " = ?", new String[] { String.valueOf(startTime) });
 	}
 
 	// Getting contacts Count

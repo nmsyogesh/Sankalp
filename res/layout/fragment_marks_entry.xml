@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/centreLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="5dp"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/centreSelect"
+            android:layout_width="match_parent"
+            android:background="@drawable/rectangle"
+            android:layout_height="wrap_content"
+            android:text="" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/classLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_below="@+id/centreLayout"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/classSelect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rectangle"
+            android:text="" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/studentsList"
+        android:layout_below="@+id/classLayout"
+        android:layout_above="@+id/buttonLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="center|bottom" >
+
+        <Button
+            android:id="@+id/submitMarks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#16a085"
+            android:gravity="center_horizontal"
+            android:text="Submit Marks"
+            android:visibility="gone" />
+    </LinearLayout>
+
+</RelativeLayout>

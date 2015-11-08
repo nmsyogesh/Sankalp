@@ -21,6 +21,8 @@ public class TabPagerAdapter extends FragmentPagerAdapter {
 			return new ReportIssueFragment();
 		case 3:
 			return new ClassRecordsFragment();
+		case 4:
+			return new MarksEntryFragment();
 		}
 		return null;
 
@@ -29,7 +31,7 @@ public class TabPagerAdapter extends FragmentPagerAdapter {
 	@Override
 	public int getCount() {
 		// TODO Auto-generated method stub
-		return 4; // No of Tabs
+		return 5; // No of Tabs
 	}
 
 }

@@ -1,50 +1,47 @@
 package org.sankalpnitjamshedpur;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
+import java.util.List;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.sankalpnitjamshedpur.db.HttpRequestHandler;
 import org.sankalpnitjamshedpur.db.RegistrationStage;
-import org.sankalpnitjamshedpur.db.RemoteDatabaseConfiguration;
 import org.sankalpnitjamshedpur.entity.User;
-import org.sankalpnitjamshedpur.helper.LoginConstants;
 import org.sankalpnitjamshedpur.helper.NetworkStatusChangeReceiver;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
+import org.sankalpnitjamshedpur.helper.TAGS;
 import org.sankalpnitjamshedpur.helper.ValidationException;
 import org.sankalpnitjamshedpur.helper.Validator;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.pm.Signature;
+import android.opengl.Visibility;
 import android.os.Bundle;
-import android.util.Base64;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
+import android.view.View.OnTouchListener;
+import android.view.accessibility.AccessibilityManager.TouchExplorationStateChangeListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,21 +55,22 @@ import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 
 public class LoginActivity extends Activity implements OnClickListener,
-		UserAuthenticationActivity {
+		OnTouchListener, UserAuthenticationActivity {
 	Button loginButton;
-	EditText inputParam, password;
-	Spinner loginOptionSpinner;
-	String option = "";
-	String passwordText;
+	EditText inputText, passwordText;
+	String loginType;
+	String passwordValue;
 	User loggedInUser;
+
 	boolean error = false;
-	TextView volunteerIdHelp;
 	ProgressDialog progressDialog;
 	TextView errorView;
 
 	private ImageView fb_login_initiator;
 
+	Toast toast;
 	private CallbackManager callbackManager;
+	private HttpRequestHandler requestHandler;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -81,209 +79,123 @@ public class LoginActivity extends Activity implements OnClickListener,
 		setContentView(R.layout.login_page);
 
 		if (SharedPreferencesKey.getBooleanFromSharedPreferences(
-				SharedPreferencesKey.KEY_IS_LOGGED_IN, false,
+				TAGS.KEY_IS_LOGGED_IN, false,
 				getApplicationContext())) {
 			startHomePageActivityWithUser();
-			finish();
 			return;
 		}
 
 		String registeredType = getIntent().getStringExtra(
-				LoginConstants.KEY_REGISTERED_TYPE);
+				TAGS.KEY_REGISTERATION_TYPE);
 
 		errorView = (TextView) findViewById(R.id.errorView);
 		errorView.setVisibility(View.VISIBLE);
-		inputParam = (EditText) findViewById(R.id.inputParam);
-		password = (EditText) findViewById(R.id.password);
+		inputText = (EditText) findViewById(R.id.inputParam);
+		passwordText = (EditText) findViewById(R.id.password);
 		loginButton = (Button) findViewById(R.id.loginButton);
 		loginButton.setOnClickListener(this);
-		fb_login_initiator = (ImageView) findViewById(R.id.fb_login);
-		fb_login_initiator.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				LoginManager.getInstance().logInWithReadPermissions(
-						LoginActivity.this, Arrays.asList("email"));
-			}
-		});
+		inputText.setOnTouchListener(this);
+		passwordText.setOnTouchListener(this);
+		/*
+		 * fb_login_initiator = (ImageView) findViewById(R.id.fb_login);
+		 * fb_login_initiator.setOnClickListener(new OnClickListener() {
+		 * 
+		 * @Override public void onClick(View v) {
+		 * LoginManager.getInstance().logInWithReadPermissions(
+		 * LoginActivity.this, Arrays.asList("email")); } });
+		 */
 
-		loginOptionSpinner = (Spinner) findViewById(R.id.login_option);
-		volunteerIdHelp = (TextView) findViewById(R.id.volunteerIdHelp);
+		/*
+		 * btnSignIn = (SignInButton) findViewById(R.id.google_sign_in);
+		 * btnSignIn.setOnClickListener(this); mGoogleApiClient = new
+		 * GoogleApiClient.Builder(getApplicationContext())
+		 * .addConnectionCallbacks(this) .addOnConnectionFailedListener(this)
+		 * .addApi(Plus.API) .addScope(Plus.SCOPE_PLUS_LOGIN).build();
+		 */
 
 		callbackManager = CallbackManager.Factory.create();
 
-		LoginManager.getInstance().registerCallback(callbackManager,
-				new FacebookCallback<LoginResult>() {
+		/*
+		 * LoginManager.getInstance().registerCallback(callbackManager, new
+		 * FacebookCallback<LoginResult>() {
+		 * 
+		 * @Override public void onSuccess(LoginResult loginResult) {
+		 * GraphRequest request = GraphRequest.newMeRequest(
+		 * loginResult.getAccessToken(), new
+		 * GraphRequest.GraphJSONObjectCallback() {
+		 * 
+		 * @Override public void onCompleted(JSONObject user, GraphResponse
+		 * response) { if (user.optString("email").isEmpty()) {
+		 * setError("No Email found for facebook user"); return; }
+		 * requestHandler = new HttpRequestHandler( LoginActivity.this,
+		 * RegistrationStage.FACEBOOK_LOGIN); progressDialog =
+		 * ProgressDialog.show( getApplicationContext(), "Please Wait",
+		 * "We are logging you in!!"); progressDialog.setCancelable(true);
+		 * Log.v("user details", response.toString()); Log.i("Login", "user " +
+		 * user.optString("email") + " has logged in through facebook");
+		 * 
+		 * requestHandler .execute(getHttpRegistrationGetRequest (
+		 * user.optString("email") .toLowerCase(), TAGS.KEY_USER_EMAIL_ID));
+		 * 
+		 * Log.i("LOGIN", "generated login request for " +
+		 * user.optString("email"));
+		 * 
+		 * LoginManager.getInstance().logOut(); } }); Bundle parameters = new
+		 * Bundle(); parameters.putString("fields", "email");
+		 * request.setParameters(parameters); request.executeAsync(); }
+		 * 
+		 * @Override public void onCancel() {
+		 * setError("User canceleed facebook login!!"); }
+		 * 
+		 * @Override public void onError(FacebookException error) {
+		 * setError("Facebook login error!!"); } });
+		 */
 
-					@Override
-					public void onSuccess(LoginResult loginResult) {
-						GraphRequest request = GraphRequest.newMeRequest(
-								loginResult.getAccessToken(),
-								new GraphRequest.GraphJSONObjectCallback() {
-									@Override
-									public void onCompleted(JSONObject user,
-											GraphResponse response) {
-										if (user.optString("email").isEmpty()) {
-											setError("No Email found for facebook user");
-											return;
-										}
-										HttpRequestHandler requestHandler = new HttpRequestHandler(
-												LoginActivity.this,
-												RegistrationStage.FACEBOOK_LOGIN);
-										progressDialog = ProgressDialog.show(
-												getApplicationContext(),
-												"Please Wait",
-												"We are logging you in!!");
-										progressDialog.setCancelable(true);
-										Log.v("user details",
-												response.toString());
-										Log.i("Login",
-												"user "
-														+ user.optString("email")
-														+ " has logged in through facebook");
-										requestHandler
-												.execute(getHttpRegistrationGetRequest(
-														user.optString("email")
-																.toLowerCase(),
-														RemoteDatabaseConfiguration.KEY_USER_EMAIL_ID));
-										Log.i("LOGIN",
-												"generated login request for "
-														+ user.optString("email"));
-
-										LoginManager.getInstance().logOut();
-									}
-								});
-						Bundle parameters = new Bundle();
-						parameters.putString("fields", "email");
-						request.setParameters(parameters);
-						request.executeAsync();
-					}
-
-					@Override
-					public void onCancel() {
-						setError("User canceleed facebook login!!");
-					}
-
-					@Override
-					public void onError(FacebookException error) {
-						setError("Facebook login error!!");
-					}
-				});
-
-		ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter
-				.createFromResource(this, R.array.login_options,
-						android.R.layout.simple_spinner_item);
-		staticAdapter
-				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		loginOptionSpinner.setAdapter(staticAdapter);
-		password.setText("");
-
-		loginOptionSpinner
-				.setOnItemSelectedListener(new OnItemSelectedListener() {
-					@Override
-					public void onItemSelected(AdapterView<?> parent,
-							View view, int position, long id) {
-						option = (String) parent.getItemAtPosition(position);
-						// inputParam.setText("");
-						String input;
-						if (option.equalsIgnoreCase("Volunteer Id")) {
-							if ((input = SharedPreferencesKey
-									.getStringFromSharedPreferences(
-											SharedPreferencesKey.KEY_VOLUNTEERID,
-											null, getApplicationContext())) != null) {
-								inputParam.setText(input);
-							}
-							volunteerIdHelp.setVisibility(View.VISIBLE);
-							inputParam.setHint("Enter your Volunteer Id");
-						} else if (option.equalsIgnoreCase("Email Id")) {
-							if ((input = SharedPreferencesKey
-									.getStringFromSharedPreferences(
-											SharedPreferencesKey.KEY_EMAIL_ID,
-											null, getApplicationContext())) != null) {
-								inputParam.setText(input);
-							}
-							volunteerIdHelp.setVisibility(View.GONE);
-							inputParam.setHint("Enter your Email Id");
-						} else if (option.equalsIgnoreCase("Mobile No")) {
-							if ((input = SharedPreferencesKey
-									.getStringFromSharedPreferences(
-											SharedPreferencesKey.KEY_MOBILE_NO,
-											null, getApplicationContext())) != null) {
-								inputParam.setText(input);
-							}
-							volunteerIdHelp.setVisibility(View.GONE);
-							inputParam.setHint("Enter your Mobile No");
-						}
-					}
-
-					@Override
-					public void onNothingSelected(AdapterView<?> parent) {
-
-					}
-				});
+		passwordText.setText("");
 
 		if (registeredType != null) {
-			if (registeredType.equalsIgnoreCase(LoginConstants.KEY_EMAILID)) {
-				loginOptionSpinner.setSelection(1);
-			} else if (registeredType
-					.equalsIgnoreCase(LoginConstants.KEY_MOBILENO)) {
-				loginOptionSpinner.setSelection(2);
-			} else if (registeredType
-					.equalsIgnoreCase(LoginConstants.KEY_VOLUNTEERID)) {
-				loginOptionSpinner.setSelection(0);
-			}
+			loginType = registeredType;
 			String text = getIntent().getStringExtra(registeredType);
-			inputParam.setText(text);
+			inputText.setText(text);
 		}
-		showHashKey(this);
 	}
-	
+
 	public void setError(String errorText) {
 		errorView.setError("");
-		errorView.setText(errorView.getText() + "\n" + errorText);
+		errorView.setVisibility(View.VISIBLE);
+		errorView.setText(errorView.getText() + "\n\n" + errorText);
 	}
 
 	private void removeError() {
 		error = false;
+		errorView.setVisibility(View.GONE);
 		errorView.setText(null);
 		errorView.setError(null);
 	}
 
-	public void showHashKey(Context context) {
-		try {
-			PackageInfo info = context.getPackageManager().getPackageInfo(
-					"org.sankalpnitjamshedpur", PackageManager.GET_SIGNATURES); 
-			for (Signature signature : info.signatures) {
-				MessageDigest md = MessageDigest.getInstance("SHA");
-				md.update(signature.toByteArray());
-				Log.i("KeyHash:",
-						Base64.encodeToString(md.digest(), Base64.DEFAULT));
-			}
-		} catch (NameNotFoundException e) {
-		} catch (NoSuchAlgorithmException e) {
-		}
-	}
-	
 	private void validateInputParam() {
 		try {
-			if (option.equalsIgnoreCase("Email Id")) {
-				Validator
-						.validateEmail(inputParam.getText().toString());
-			} else if (option.equalsIgnoreCase("Volunteer Id")) {
-				Validator.validateVolunteerId(inputParam.getText()
-						.toString());
-			} else if (option.equalsIgnoreCase("Mobile No")) {
-				Validator.validateMobileNo(inputParam.getText()
-						.toString());
-			}
+			Validator.validateEmail(inputText.getText().toString());
+			loginType = TAGS.KEY_EMAIL_ID;
 		} catch (ValidationException e) {
-			error = true;
-			setError(e.getMessage());
+			try {
+				Validator.validateVolunteerId(inputText.getText().toString());
+				loginType = TAGS.KEY_VOLUNTEER_ID;
+			} catch (ValidationException ex) {
+				try {
+					Validator.validateMobileNo(inputText.getText().toString());
+					loginType = TAGS.KEY_MOBILE_NO;
+				} catch (ValidationException exc) {
+					error = true;
+					setError("Invalid Email/Mobile/VolunteerId");
+				}
+			}
 		}
 	}
-	
+
 	private void validatePassword() {
 		try {
-			Validator.validatePassword(password.getText().toString());
+			Validator.validatePassword(passwordText.getText().toString());
 		} catch (ValidationException e) {
 			error = true;
 			setError(e.getMessage());
@@ -293,143 +205,157 @@ public class LoginActivity extends Activity implements OnClickListener,
 	@Override
 	public void onClick(View v) {
 		removeError();
-		
+
 		if (v == loginButton) {
-			System.out.println("LOGIN Clicked");
 			validateInputParam();
 			validatePassword();
 			if (error) {
-				Toast.makeText(getApplicationContext(),
-						"Please Correct Login Details", Toast.LENGTH_SHORT)
-						.show();
+				toast = Toast.makeText(getApplicationContext(),
+						"Please Correct Login Details", Toast.LENGTH_SHORT);
+				toast.show();
 				return;
 			}
-			if(!NetworkStatusChangeReceiver.isConnected(this)) {
+			if (!NetworkStatusChangeReceiver.isConnected(this)) {
 				setError("No internet connectivity.");
 				return;
 			}
-			String inputString = inputParam.getText().toString();
-			passwordText = password.getText().toString();
-			
-			HttpRequestHandler requestHandler = new HttpRequestHandler(this,
+			String inputString = inputText.getText().toString();
+			passwordValue = passwordText.getText().toString();
+
+			requestHandler = new HttpRequestHandler(this,
 					RegistrationStage.LOGIN);
-			if (option.equalsIgnoreCase("Volunteer Id")) {
-				requestHandler.execute(getHttpRegistrationGetRequest(
-						inputString.toUpperCase(),
-						RemoteDatabaseConfiguration.KEY_USER_VOLUNTEERID));
-			} else if (option.equalsIgnoreCase("Email Id")) {
-				requestHandler.execute(getHttpRegistrationGetRequest(
-						inputString.toLowerCase(),
-						RemoteDatabaseConfiguration.KEY_USER_EMAIL_ID));
-			} else if (option.equalsIgnoreCase("Mobile No")) {
-				requestHandler.execute(getHttpRegistrationGetRequest(
-						inputString,
-						RemoteDatabaseConfiguration.KEY_USER_MOBILE_NO));
-			}
+			requestHandler.execute(getHttpRegistrationGetRequest(
+					inputString.toUpperCase(), loginType));
 			progressDialog = ProgressDialog.show(this, "Please Wait",
 					"We are logging you in!!");
 			progressDialog.setCancelable(true);
-		} 
+		}
 	}
 
 	private HttpUriRequest getHttpRegistrationGetRequest(String value,
-			String fieldId) {
+			String loginType) {
 
-		HttpGet getRequest = new HttpGet(RemoteDatabaseConfiguration.USER_URL
-				+ "&where=" + fieldId + ",eq," + value);
-		getRequest.setHeader("User-Agent",
-				RemoteDatabaseConfiguration.USER_AGENT);
-		getRequest.setHeader("Authorization",
-				RemoteDatabaseConfiguration.getApiKey());
+		HttpPost postRequest = new HttpPost(TAGS.VOLUNTEERS_LOGIN_URL);
+		List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+		urlParameters.add(new BasicNameValuePair(loginType, value));
+		urlParameters.add(new BasicNameValuePair(TAGS.KEY_PASSWORD, TAGS
+				.generateHash(passwordValue)));
 
-		return getRequest;
+		try {
+			postRequest.setEntity(new UrlEncodedFormEntity(urlParameters,
+					"UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+
+		return postRequest;
 	}
 
 	@Override
 	public void onRequestResult(StringBuffer result,
 			RegistrationStage registrationStage) {
+
 		if (progressDialog != null)
 			progressDialog.dismiss();
 		if (result == null) {
 			setError("Error while login, Try again!!");
 			return;
 		}
+		JSONObject mainJsonObj, details;
 		try {
-			JSONObject mainJsonObj = new JSONObject(result.toString());
-			if (RegistrationStage.LOGIN == registrationStage) {
-				if (mainJsonObj.length() == 0) {
-					if (option.equalsIgnoreCase("Volunteer Id")) {
-						Toast.makeText(getApplicationContext(),
-								"No user Exists with this volunteer Id",
-								Toast.LENGTH_SHORT).show();
-					} else if (option.equalsIgnoreCase("Email Id")) {
-						Toast.makeText(getApplicationContext(),
-								"No user Exists with this Email",
-								Toast.LENGTH_SHORT).show();
-					} else if (option.equalsIgnoreCase("Mobile No")) {
-						Toast.makeText(getApplicationContext(),
-								"No user Exists with this Mobile No",
-								Toast.LENGTH_SHORT).show();
-					}
-					return;
-				}
-			} else if (registrationStage == RegistrationStage.GOOGLE_LOGIN
-					|| registrationStage == RegistrationStage.FACEBOOK_LOGIN) {
-				if (mainJsonObj.length() == 0) {
-					Toast.makeText(getApplicationContext(),
-							"No user Exists with this Email",
-							Toast.LENGTH_SHORT).show();
-					return;
-				}
-			}
+			mainJsonObj = new JSONObject(result.toString());
 
-			if (registrationStage == RegistrationStage.GOOGLE_LOGIN) {
-				loggedInUser = checkPasswordAndCreateUser(mainJsonObj, false);
-			} else if (registrationStage == RegistrationStage.FACEBOOK_LOGIN) {
-				loggedInUser = checkPasswordAndCreateUser(mainJsonObj, false);
-			} else if (registrationStage == RegistrationStage.LOGIN) {
-				loggedInUser = checkPasswordAndCreateUser(mainJsonObj, true);
-			}
-
-			if (loggedInUser != null) {
+			if (mainJsonObj.getInt(TAGS.KEY_SUCCESS) == 1) {
+				details = mainJsonObj.getJSONObject(TAGS.KEY_DETAILS);
+				// login successfully, save user details in preferences
+				loggedInUser = createUser(details);
 				Log.i("LOGIN",
 						"login successful for " + loggedInUser.getEmailId());
 				setPrefernces();
 				startHomePageActivityWithUser();
-			} else {
-				Toast.makeText(getApplicationContext(),
-						"Wrong password!! try again", Toast.LENGTH_LONG).show();
-				setError("Wrong password!!");
-			}
+			} else if (mainJsonObj.getInt(TAGS.KEY_SUCCESS) == 0) {
+				// some error occurred
+				String message = mainJsonObj.getString(TAGS.KEY_MESSAGE);
 
+				if (message.equals("NO_USER")) {
+					details = mainJsonObj.getJSONObject(TAGS.KEY_DETAILS);
+					// prompt the user to login with returned input parameter
+					final String inputType = details.getJSONArray(
+							TAGS.KEY_PARAMS).getString(0);
+					AlertDialog.Builder alertDialog = new AlertDialog.Builder(
+							this);
+
+					alertDialog.setTitle("ALERT!!!");
+					alertDialog
+							.setMessage(inputType.toUpperCase()
+									+ ": "
+									+ inputText.getText().toString()
+									+ " does not exists, Do you want to register yourself?");
+
+					alertDialog.setPositiveButton("Yes, Create me",
+							new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) {
+									startRegistrationActivity(inputText
+											.getText().toString(), inputType);
+								}
+							});
+
+					alertDialog.setNegativeButton("No Thanks",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int which) {
+									dialog.cancel();
+								}
+							});
+
+					alertDialog.show();
+				} else if (message.equals("INVALID_LOGIN")) {
+					toast = Toast.makeText(getApplicationContext(),
+							"Wrong password!! try again", Toast.LENGTH_LONG);
+					toast.show();
+					setError("Wrong password!!");
+				} else if (message.equals("INTERNAL_ERROR")) {
+					// prompt the user to wait
+					Toast.makeText(
+							getApplicationContext(),
+							"Some internal error occured, please try again later",
+							Toast.LENGTH_LONG).show();
+				}
+			}
 		} catch (JSONException e1) {
 			e1.printStackTrace();
 		}
 	}
 
-	private User checkPasswordAndCreateUser(JSONObject mainJsonObj,
-			boolean checkPassword) throws JSONException {
-		Iterator<String> keysIterator = mainJsonObj.keys();
-		if (keysIterator.hasNext()) {
-			JSONObject dataObject = mainJsonObj.getJSONObject(keysIterator
-					.next());
-
-			if (checkPassword
-					&& !passwordText.equals(dataObject.getString("Password"))) {
-				Log.e("LOGIN",
-						"wrong password for " + dataObject.getString("EmailId"));
-				return null;
+	private void startRegistrationActivity(String inputValue, String inputType) {
+		try {
+			Intent registartionPageActivityIntent = new Intent(
+					this,
+					Class.forName("org.sankalpnitjamshedpur.RegistrationActivity"));
+			if (inputType != null) {
+				registartionPageActivityIntent.putExtra(
+						TAGS.KEY_REGISTERATION_TYPE, inputType);
+				registartionPageActivityIntent.putExtra(inputType, inputValue);
 			}
-
-			return new User(dataObject.getString("Name"),
-					Integer.parseInt(dataObject.getString("RollNo")),
-					dataObject.getString("EmailId"),
-					Integer.parseInt(dataObject.getString("Batch")),
-					dataObject.getString("Branch"),
-					dataObject.getString("Password"), Long.parseLong(dataObject
-							.getString("MobileNo")));
+			startActivity(registartionPageActivityIntent);
+			finish();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
 		}
-		return null;
+	}
+
+	private User createUser(JSONObject details) throws JSONException {
+
+		return new User(details.getString(TAGS.KEY_NAME),
+				Integer.parseInt(details.getString(TAGS.KEY_ROLLNO)),
+				details.getString(TAGS.KEY_EMAIL_ID), Integer.parseInt(details
+						.getString(TAGS.KEY_BATCH)),
+				details.getString(TAGS.KEY_BRANCH), Long.parseLong(details
+						.getString(TAGS.KEY_MOBILE_NO)),
+				details.getString(TAGS.KEY_VOLUNTEER_ID),
+				details.getString(TAGS.KEY_SECURITY_TOKEN));
 	}
 
 	private void startHomePageActivityWithUser() {
@@ -437,8 +363,8 @@ public class LoginActivity extends Activity implements OnClickListener,
 			Intent homePageActivityIntent = new Intent(this,
 					Class.forName("org.sankalpnitjamshedpur.HomePage"));
 			// Pass this registered user in sharedPrefernces for further usage
-
 			startActivity(homePageActivityIntent);
+
 			finish();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -452,21 +378,23 @@ public class LoginActivity extends Activity implements OnClickListener,
 				SharedPreferencesKey.PREFS_NAME, Context.MODE_PRIVATE);
 		editor = settings.edit();
 
-		editor.putString(SharedPreferencesKey.KEY_NAME, loggedInUser.getName());
-		editor.putString(SharedPreferencesKey.KEY_BATCH,
+		editor.putString(TAGS.KEY_NAME, loggedInUser.getName());
+		editor.putString(TAGS.KEY_BATCH,
 				String.valueOf(loggedInUser.getBatch()));
-		editor.putString(SharedPreferencesKey.KEY_BRANCH,
+		editor.putString(TAGS.KEY_BRANCH,
 				loggedInUser.getBranch());
-		editor.putString(SharedPreferencesKey.KEY_EMAIL_ID,
+		editor.putString(TAGS.KEY_EMAIL_ID,
 				loggedInUser.getEmailId());
-		editor.putString(SharedPreferencesKey.KEY_ROLLNO,
+		editor.putString(TAGS.KEY_ROLLNO,
 				String.valueOf(loggedInUser.getRollNo()));
-		editor.putString(SharedPreferencesKey.KEY_MOBILE_NO,
+		editor.putString(TAGS.KEY_MOBILE_NO,
 				String.valueOf(loggedInUser.getMobileNo()));
-		editor.putString(SharedPreferencesKey.KEY_VOLUNTEERID,
+		editor.putString(TAGS.KEY_VOLUNTEER_ID,
 				loggedInUser.getVolunteerId());
+		editor.putString(TAGS.KEY_SECURITY_TOKEN,
+				loggedInUser.getSecurityToken());
 
-		editor.putBoolean(SharedPreferencesKey.KEY_IS_LOGGED_IN, true);
+		editor.putBoolean(TAGS.KEY_IS_LOGGED_IN, true);
 
 		editor.commit();
 	}
@@ -474,7 +402,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 	public Context getApplicationContext() {
 		return this;
 	}
-	
+
 	@Override
 	protected void onActivityResult(int requestCode, int responseCode,
 			Intent intent) {
@@ -484,7 +412,18 @@ public class LoginActivity extends Activity implements OnClickListener,
 
 	@Override
 	public void finish() {
+		if (toast != null)
+			toast.cancel();
+		if (requestHandler != null) {
+			requestHandler.cancel(false);
+		}
 		LoginManager.getInstance().logOut();
 		super.finish();
+	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		removeError();
+		return false;
 	}
 }

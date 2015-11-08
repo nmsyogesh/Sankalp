@@ -15,9 +15,11 @@ import net.lingala.zip4j.util.Zip4jConstants;
 import org.sankalpnitjamshedpur.R;
 import org.sankalpnitjamshedpur.adapter.ImageAdapter;
 import org.sankalpnitjamshedpur.db.DatabaseHandler;
+import org.sankalpnitjamshedpur.entity.Centre;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
 import org.sankalpnitjamshedpur.helper.GPSTracker;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
+import org.sankalpnitjamshedpur.helper.TAGS;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -94,7 +96,7 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 			dbHandler = new DatabaseHandler(android.getContext());
 		}
 		volunteerId = SharedPreferencesKey.getStringFromSharedPreferences(
-				SharedPreferencesKey.KEY_VOLUNTEERID, "", android.getContext());
+				TAGS.KEY_VOLUNTEER_ID, "", android.getContext());
 
 		gridView = (GridView) android.findViewById(R.id.previewPane);
 		comments = (EditText) android.findViewById(R.id.comments);
@@ -318,7 +320,7 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 											.getLatitude(), endLocation
 											.getLongitude())
 									.setComments(comments.getText().toString()));
-							
+
 							URIList.clear();
 							disableFields();
 							startLocation = null;
@@ -340,27 +342,46 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 
 		if (v == centreOption) {
 			centreOption.setError(null);
+			final ArrayList<Centre> listOfCentres = dbHandler
+					.getListOfCentres();
 			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
 					getActivity());
 
 			// Setting Dialog Title
 			alertDialogBuilder.setTitle("Choose Centre");
 
-			alertDialogBuilder.setSingleChoiceItems(R.array.centre_array, 0,
-					null).setPositiveButton("OK",
-					new DialogInterface.OnClickListener() {
+			alertDialogBuilder.setSingleChoiceItems(
+					getCentreList(listOfCentres), 0, null).setPositiveButton(
+					"OK", new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							dialog.dismiss();
-							centreNo = 1 + ((AlertDialog) dialog).getListView()
-									.getCheckedItemPosition();
-							centreOption.setText("Centre: " + centreNo);
+							if (listOfCentres != null
+									&& !listOfCentres.isEmpty()) {
+								Centre centre = listOfCentres
+										.get(((AlertDialog) dialog)
+												.getListView()
+												.getCheckedItemPosition());
+								centreNo = centre.getCentreId();
+								centreOption.setText("Centre: "
+										+ centre.getCentreName());
+							}
 						}
 					});
 
 			alertDialogBuilder.create().show();
 		}
 
+	}
+
+	public String[] getCentreList(ArrayList<Centre> centres) {
+		String[] centreList = new String[centres.size()];
+		int i = 0;
+		for (Centre centre : centres) {
+			centreList[i] = centre.getCentreName();
+			i++;
+		}
+		return centreList;
 	}
 
 	private void showThanksPopUp() {

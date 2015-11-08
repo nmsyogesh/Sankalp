@@ -2,6 +2,7 @@ package org.sankalpnitjamshedpur.tabs;
 
 import org.sankalpnitjamshedpur.R;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
+import org.sankalpnitjamshedpur.helper.TAGS;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -20,37 +21,37 @@ public class ProfileFragment extends Fragment {
 
 		((TextView) android.findViewById(R.id.Name))
 				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
-						SharedPreferencesKey.KEY_NAME, null, getActivity()
+						TAGS.KEY_NAME, null, getActivity()
 								.getApplicationContext()));
 
 		((TextView) android.findViewById(R.id.RollNo))
 				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
-						SharedPreferencesKey.KEY_ROLLNO, null, getActivity()
+						TAGS.KEY_ROLLNO, null, getActivity()
 								.getApplicationContext()));
 
 		((TextView) android.findViewById(R.id.Batch))
 				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
-						SharedPreferencesKey.KEY_BATCH, null, getActivity()
+						TAGS.KEY_BATCH, null, getActivity()
 								.getApplicationContext()));
 
 		((TextView) android.findViewById(R.id.Branch))
 				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
-						SharedPreferencesKey.KEY_BRANCH, null, getActivity()
+						TAGS.KEY_BRANCH, null, getActivity()
 								.getApplicationContext()));
 
 		((TextView) android.findViewById(R.id.EmailId))
 				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
-						SharedPreferencesKey.KEY_EMAIL_ID, null, getActivity()
+						TAGS.KEY_EMAIL_ID, null, getActivity()
 								.getApplicationContext()));
 
 		((TextView) android.findViewById(R.id.MobileNo))
 				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
-						SharedPreferencesKey.KEY_MOBILE_NO, null, getActivity()
+						TAGS.KEY_MOBILE_NO, null, getActivity()
 								.getApplicationContext()));
 
 		((TextView) android.findViewById(R.id.VolunteerId))
 				.setText(SharedPreferencesKey.getStringFromSharedPreferences(
-						SharedPreferencesKey.KEY_VOLUNTEERID, null,
+						TAGS.KEY_VOLUNTEER_ID, null,
 						getActivity().getApplicationContext()));
 
 		return android;

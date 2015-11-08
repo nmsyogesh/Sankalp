@@ -1,41 +1,35 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/rectangle"
-    android:gravity="center"
-    android:orientation="vertical"
-    tools:context=".LoginActivity" >
-    <TextView android:id="@+id/errorView"
-        android:layout_width="wrap_content"
+    android:orientation="vertical">
+ 
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="20dp"
-        />
+        android:adjustViewBounds="true"
+        android:layout_centerHorizontal="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/background_login" />
 
     <TextView
+        android:id="@+id/errorView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="Login Using"
-        android:textSize="18sp" />
-
-    <Spinner
-        android:id="@+id/login_option"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginBottom="10dp"
-        android:layout_marginTop="10dp"
-        android:gravity="clip_horizontal"
-        tools:listitem="@android:layout/simple_spinner_item" />
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/image"
+        android:visibility="gone"
+        android:layout_marginBottom="10dp" />
 
     <EditText
         android:id="@+id/inputParam"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
         android:background="@drawable/rectangle"
+        android:hint="EmailId, ContactNo or VolunteerId"
+        android:layout_below="@+id/errorView"
         android:padding="10dp"
         android:singleLine="true" />
 
@@ -43,9 +37,12 @@
         android:id="@+id/password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="4dp"
         android:background="@drawable/rectangle"
-        android:hint="Your password here!"
+        android:hint="Password"
+        android:layout_below="@+id/inputParam"
         android:inputType="textPassword"
         android:padding="10dp" />
 
@@ -53,26 +50,44 @@
         android:id="@+id/loginButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="10dp"
+        android:layout_below="@+id/password"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginRight="10dp"
+        android:gravity="center_horizontal"
         android:background="#16a085"
-        android:text="LOGIN" />
+        android:padding="8dp"
+        android:text="Let me in!!" />
 
+    <!--
     <ImageView
         android:id="@+id/fb_login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:clickable="true"
-        android:src="@drawable/fb_logo" />
+       android:src="@drawable\fb_logo" /> -->
 
     <TextView
         android:id="@+id/volunteerIdHelp"
         android:layout_width="150dp"
         android:layout_height="50dp"
-        android:layout_gravity="bottom|right"
-        android:layout_marginTop="20dp"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/loginButton"
+        android:layout_marginTop="5dp"
+        android:gravity="bottom"
         android:text="*VolunteerId is combination of 4 digit batch + 2 UpperCaseLetter branch + 3 digit Roll No."
         android:textSize="10sp" />
+    
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:layout_below="@+id/volunteerIdHelp"
+        android:layout_margin="18dp"
+        android:layout_centerHorizontal="true"
+        android:scaleType="centerInside"
+        android:src="@drawable/logo" />
 
-</LinearLayout>
+</RelativeLayout>

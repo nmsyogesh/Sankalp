@@ -10,6 +10,7 @@ import org.sankalpnitjamshedpur.db.DatabaseHandler;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
 import org.sankalpnitjamshedpur.helper.NetworkStatusChangeReceiver;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
+import org.sankalpnitjamshedpur.helper.TAGS;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -62,9 +63,8 @@ public class ClassRecordsFragment extends Fragment {
 				LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 		List<ClassRecord> classRecords = dbHandler
 				.getAllClassRecords(SharedPreferencesKey
-						.getStringFromSharedPreferences(
-								SharedPreferencesKey.KEY_VOLUNTEERID, null,
-								context));
+						.getStringFromSharedPreferences(TAGS.KEY_VOLUNTEER_ID,
+								null, context));
 		if (classRecords == null || classRecords.isEmpty()) {
 			TextView tv = new TextView(context);
 			tv.setText("Sorry No records found \n Consider taking a class today!!!");
@@ -179,15 +179,17 @@ public class ClassRecordsFragment extends Fragment {
 					new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							if(classRecord.getUriList()!=null && classRecord.getUriList().size()!=0) {
-								for(Uri uri: classRecord.getUriList()) {
+							if (classRecord.getUriList() != null
+									&& classRecord.getUriList().size() != 0) {
+								for (Uri uri : classRecord.getUriList()) {
 									File f = new File(uri.getPath());
-									if(f!=null) {
+									if (f != null) {
 										f.delete();
 									}
 								}
-								
-								String timeStamp = String.valueOf(classRecord.getStartTime());
+
+								String timeStamp = String.valueOf(classRecord
+										.getStartTime());
 								String zipFilePath = Environment
 										.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
 										+ File.separator
@@ -195,7 +197,7 @@ public class ClassRecordsFragment extends Fragment {
 										+ timeStamp
 										+ ".zip";
 								File f = new File(zipFilePath);
-								if(f!=null) {
+								if (f != null) {
 									f.delete();
 								}
 							}
@@ -243,13 +245,15 @@ public class ClassRecordsFragment extends Fragment {
 							public void onClick(DialogInterface dialog,
 									int whichButton) {
 								comment = input.getText().toString();
-								classRecord.setComments(comment);	
+								classRecord.setComments(comment);
 
-								networkStatusChangeReceiver.addClassRecord(classRecord);
+								networkStatusChangeReceiver
+										.addClassRecord(classRecord);
 								networkStatusChangeReceiver.processRequests();
-								Toast.makeText(context, "Added post request to queue",
+								Toast.makeText(context,
+										"Added post request to queue",
 										Toast.LENGTH_SHORT).show();
-								
+
 								if (classRecord.getUriList() != null
 										&& classRecord.getUriList().size() != 0) {
 									processEmail();
@@ -263,7 +267,7 @@ public class ClassRecordsFragment extends Fragment {
 			} else {
 				Toast.makeText(context, "Record already posted!!",
 						Toast.LENGTH_SHORT).show();
-			} 
+			}
 		}
 
 		public void processEmail() {
