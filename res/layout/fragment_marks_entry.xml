@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical" >
 
     <LinearLayout
         android:id="@+id/centreLayout"
@@ -15,8 +15,8 @@
         <Button
             android:id="@+id/centreSelect"
             android:layout_width="match_parent"
-            android:background="@drawable/rectangle"
             android:layout_height="wrap_content"
+            android:background="@drawable/rectangle"
             android:text="" />
     </LinearLayout>
 
@@ -24,24 +24,43 @@
         android:id="@+id/classLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
         android:layout_below="@+id/centreLayout"
+        android:layout_marginBottom="10dp"
         android:orientation="horizontal" >
 
         <Button
             android:id="@+id/classSelect"
-            android:layout_width="match_parent"
+            android:layout_width="0dip"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:background="@drawable/rectangle"
             android:text="" />
+
+        <Button
+            android:id="@+id/subjectSelect"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:layout_weight="1"
+            android:background="@drawable/rectangle"
+            android:text="" />
+
+        <Button
+            android:id="@+id/maxMarksSelect"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/rectangle"
+            android:text="Max Marks" />
     </LinearLayout>
 
     <ScrollView
         android:id="@+id/studentsList"
-        android:layout_below="@+id/classLayout"
-        android:layout_above="@+id/buttonLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/buttonLayout"
+        android:layout_below="@+id/classLayout" >
     </ScrollView>
 
     <LinearLayout
@@ -49,7 +68,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:gravity="center|bottom" >
+        android:gravity="center_horizontal" >
 
         <Button
             android:id="@+id/submitMarks"

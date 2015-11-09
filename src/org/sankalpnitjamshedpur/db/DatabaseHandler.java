@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import org.sankalpnitjamshedpur.entity.Centre;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
 import org.sankalpnitjamshedpur.entity.StudentClass;
+import org.sankalpnitjamshedpur.entity.Subject;
 import org.sankalpnitjamshedpur.entity.User;
 import org.sankalpnitjamshedpur.helper.TAGS;
 
@@ -22,7 +23,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 	// All Static variables
 	// Database Version
-	private static final int DATABASE_VERSION = 7;
+	private static final int DATABASE_VERSION = 8;
 
 	// Database Name
 	private static final String DATABASE_NAME = "sankalp";
@@ -32,8 +33,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private static final String TABLE_CLASS_RECORDS = "classRecords";
 	// Centres table name
 	private static final String TABLE_CENTRES = "centres";
-	// Centres table name
+	// Classes table name
 	private static final String TABLE_CLASSES = "classes";
+	// Subjects table name
+	private static final String TABLE_SUBJECTS = "subjects";
 
 	public DatabaseHandler(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -67,10 +70,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				+ TAGS.KEY_CLASS_ID + " INTEGER PRIMARY KEY,"
 				+ TAGS.KEY_CLASS_NAME + " TEXT " + ")";
 
+		String CREATE_SUBJECTS_TABLE = "CREATE TABLE " + TABLE_SUBJECTS + "("
+				+ TAGS.KEY_SUBJECT_ID + " INTEGER PRIMARY KEY,"
+				+ TAGS.KEY_SUBJECT_NAME + " TEXT, " + TAGS.KEY_CLASS_ID
+				+ " INTEGER" + ")";
+
 		db.execSQL(CREATE_CONTACTS_TABLE);
 		db.execSQL(CREATE_RECORDS_TABLE);
 		db.execSQL(CREATE_CENTRE_TABLE);
 		db.execSQL(CREATE_CLASS_TABLE);
+		db.execSQL(CREATE_SUBJECTS_TABLE);
 	}
 
 	// Upgrading database
@@ -82,6 +91,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CLASS_RECORDS);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CENTRES);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CLASSES);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_SUBJECTS);
 
 		// Create tables again
 		onCreate(db);
@@ -136,11 +146,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		// if class already exists
-		Cursor cursor = db.query(TABLE_CENTRES, new String[] {
-				TAGS.KEY_CENTRE_ID, TAGS.KEY_CENTRE_NAME }, TAGS.KEY_CENTRE_ID
-				+ "=? and " + TAGS.KEY_CENTRE_NAME + "=?",
-				new String[] { String.valueOf(studentClass.getClassId()),
-						studentClass.getClassName() }, null, null, null, null);
+		Cursor cursor = db.query(TABLE_CLASSES,
+				new String[] { TAGS.KEY_CLASS_ID }, TAGS.KEY_CLASS_ID + "=?",
+				new String[] { String.valueOf(studentClass.getClassId()) },
+				null, null, null, null);
 		if (cursor != null && cursor.getCount() > 0)
 			return;
 
@@ -151,6 +160,28 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		// Inserting Row
 		db.insert(TABLE_CLASSES, null, values);
+		db.close(); // Closing database connection
+	}
+
+	public void addSubject(Subject subject) {
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		// if class already exists
+		Cursor cursor = db.query(TABLE_SUBJECTS,
+				new String[] { TAGS.KEY_SUBJECT_ID }, TAGS.KEY_SUBJECT_ID
+						+ "=?",
+				new String[] { String.valueOf(subject.getSubjectId()) }, null,
+				null, null, null);
+		if (cursor != null && cursor.getCount() > 0)
+			return;
+
+		ContentValues values = new ContentValues();
+		values.put(TAGS.KEY_SUBJECT_ID, subject.getSubjectId());
+		values.put(TAGS.KEY_CLASS_ID, subject.getClassId());
+		values.put(TAGS.KEY_SUBJECT_NAME, subject.getSubjectName());
+
+		// Inserting Row
+		db.insert(TABLE_SUBJECTS, null, values);
 		db.close(); // Closing database connection
 	}
 
@@ -295,6 +326,26 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			} while (cursor.moveToNext());
 		}
 		return classes;
+	}
+
+	public ArrayList<Subject> getListOfSubjects(int classId) {
+		ArrayList<Subject> subjects = new ArrayList<Subject>();
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		Cursor cursor = db
+				.query(TABLE_SUBJECTS, new String[] { TAGS.KEY_SUBJECT_ID,
+						TAGS.KEY_SUBJECT_NAME, TAGS.KEY_CLASS_ID }, TAGS.KEY_CLASS_ID + "=?",
+						new String[] { String.valueOf(classId) },
+						null, null, null, null);
+
+		if (cursor.moveToFirst()) {
+			do {
+				Subject subject = new Subject(cursor.getInt(0),
+						cursor.getString(1), cursor.getInt(2));
+				subjects.add(subject);
+			} while (cursor.moveToNext());
+		}
+		return subjects;
 	}
 
 	// Getting single contact
@@ -453,6 +504,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 		db.delete(TABLE_CLASSES, TAGS.KEY_CLASS_ID + " = ?",
 				new String[] { String.valueOf(classId) });
+		db.close();
+	}
+
+	// Deleting single subject
+	public void deleteSubject(int subjectId) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		db.delete(TABLE_SUBJECTS, TAGS.KEY_SUBJECT_ID+ " = ?",
+				new String[] { String.valueOf(subjectId) });
 		db.close();
 	}
 

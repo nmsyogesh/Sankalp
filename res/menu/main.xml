@@ -8,6 +8,14 @@
         android:showAsAction="ifRoom" 
         android:orderInCategory="100"
         android:title="Directions"/>
+    
+    <item
+        android:id="@+id/sync"
+        android:icon="@drawable/sync"
+        android:showAsAction="ifRoom" 
+        android:orderInCategory="100"
+        android:title="Sync Now"/>
+    
     <item
         android:id="@+id/logout_action"
         android:icon="@drawable/logout_icon"

@@ -1,19 +1,32 @@
 package org.sankalpnitjamshedpur;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.protocol.HTTP;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.sankalpnitjamshedpur.db.HttpRequestHandler;
 import org.sankalpnitjamshedpur.db.RegistrationStage;
+import org.sankalpnitjamshedpur.entity.Centre;
+import org.sankalpnitjamshedpur.entity.StudentClass;
 import org.sankalpnitjamshedpur.entity.User;
 import org.sankalpnitjamshedpur.helper.NetworkStatusChangeReceiver;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
@@ -30,6 +43,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.opengl.Visibility;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -79,8 +93,7 @@ public class LoginActivity extends Activity implements OnClickListener,
 		setContentView(R.layout.login_page);
 
 		if (SharedPreferencesKey.getBooleanFromSharedPreferences(
-				TAGS.KEY_IS_LOGGED_IN, false,
-				getApplicationContext())) {
+				TAGS.KEY_IS_LOGGED_IN, false, getApplicationContext())) {
 			startHomePageActivityWithUser();
 			return;
 		}
@@ -381,16 +394,13 @@ public class LoginActivity extends Activity implements OnClickListener,
 		editor.putString(TAGS.KEY_NAME, loggedInUser.getName());
 		editor.putString(TAGS.KEY_BATCH,
 				String.valueOf(loggedInUser.getBatch()));
-		editor.putString(TAGS.KEY_BRANCH,
-				loggedInUser.getBranch());
-		editor.putString(TAGS.KEY_EMAIL_ID,
-				loggedInUser.getEmailId());
+		editor.putString(TAGS.KEY_BRANCH, loggedInUser.getBranch());
+		editor.putString(TAGS.KEY_EMAIL_ID, loggedInUser.getEmailId());
 		editor.putString(TAGS.KEY_ROLLNO,
 				String.valueOf(loggedInUser.getRollNo()));
 		editor.putString(TAGS.KEY_MOBILE_NO,
 				String.valueOf(loggedInUser.getMobileNo()));
-		editor.putString(TAGS.KEY_VOLUNTEER_ID,
-				loggedInUser.getVolunteerId());
+		editor.putString(TAGS.KEY_VOLUNTEER_ID, loggedInUser.getVolunteerId());
 		editor.putString(TAGS.KEY_SECURITY_TOKEN,
 				loggedInUser.getSecurityToken());
 
@@ -425,5 +435,5 @@ public class LoginActivity extends Activity implements OnClickListener,
 	public boolean onTouch(View v, MotionEvent event) {
 		removeError();
 		return false;
-	}
+	}	
 }
