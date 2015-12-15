@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.sankalpnitjamshedpur.db.DatabaseHandler;
 import org.sankalpnitjamshedpur.entity.Centre;
+import org.sankalpnitjamshedpur.entity.Exam;
 import org.sankalpnitjamshedpur.entity.StudentClass;
 import org.sankalpnitjamshedpur.entity.Subject;
 import org.sankalpnitjamshedpur.helper.NetworkStatusChangeReceiver;
@@ -109,6 +110,11 @@ public class HomePage extends FragmentActivity implements ActionBar.TabListener 
 				TAGS.SYNC_SUBJECTS, true, this)) {
 			SyncHandler syncHandler = new SyncHandler(TAGS.SYNC_SUBJECTS);
 			syncHandler.execute(new HttpGet(TAGS.SUBJECTS_LIST_URL));
+		}
+		if (SharedPreferencesKey.getBooleanFromSharedPreferences(
+				TAGS.SYNC_EXAMS, true, this)) {
+			SyncHandler syncHandler = new SyncHandler(TAGS.SYNC_EXAMS);
+			syncHandler.execute(new HttpGet(TAGS.EXAMS_LIST_URL));
 		}
 	}
 
@@ -291,6 +297,8 @@ public class HomePage extends FragmentActivity implements ActionBar.TabListener 
 						centres = mainJsonObj.getJSONObject(TAGS.KEY_DETAILS)
 								.getJSONArray(TAGS.KEY_CENTRES);
 
+						dbHandler.deleteCentresTable();
+						
 						for (int i = 0; i < centres.length(); i++) {
 							JSONObject centre = centres.getJSONObject(i);
 							dbHandler.addCentre(new Centre(centre
@@ -308,6 +316,8 @@ public class HomePage extends FragmentActivity implements ActionBar.TabListener 
 						classes = mainJsonObj.getJSONObject(TAGS.KEY_DETAILS)
 								.getJSONArray(TAGS.KEY_CLASSES);
 
+						dbHandler.deleteClassesTable();
+						
 						for (int i = 0; i < classes.length(); i++) {
 							JSONObject studentClass = classes.getJSONObject(i);
 							dbHandler.addClass(new StudentClass(studentClass
@@ -326,6 +336,8 @@ public class HomePage extends FragmentActivity implements ActionBar.TabListener 
 						subjects = mainJsonObj.getJSONObject(TAGS.KEY_DETAILS)
 								.getJSONArray(TAGS.KEY_SUBJECTS);
 
+						dbHandler.deleteSubjectsTable();
+						
 						for (int i = 0; i < subjects.length(); i++) {
 							JSONObject subject = subjects.getJSONObject(i);
 							dbHandler.addSubject(new Subject(subject
@@ -337,6 +349,27 @@ public class HomePage extends FragmentActivity implements ActionBar.TabListener 
 								TAGS.SYNC_SUBJECTS, true, context);
 						Toast.makeText(getApplicationContext(),
 								"Subjects synched", Toast.LENGTH_SHORT).show();
+					}
+					
+					if (type.equals(TAGS.SYNC_EXAMS)) {
+						JSONArray exams;
+
+						exams = mainJsonObj.getJSONObject(TAGS.KEY_DETAILS)
+								.getJSONArray(TAGS.KEY_EXAMS);
+						
+						dbHandler.deleteExamsTable();
+						
+						for (int i = 0; i < exams.length(); i++) {
+							JSONObject exam = exams.getJSONObject(i);							
+							dbHandler.addExam(new Exam(
+									exam.getInt(TAGS.KEY_EXAM_ID), exam
+									.getString(TAGS.KEY_EXAM_DATE),
+							exam.getString(TAGS.KEY_EXAM_TYPE)));
+						}
+						SharedPreferencesKey.putInSharedPreferences(
+								TAGS.SYNC_EXAMS, true, context);
+						Toast.makeText(getApplicationContext(),
+								"Exams synched", Toast.LENGTH_SHORT).show();
 					}
 				}
 			} catch (JSONException e) {

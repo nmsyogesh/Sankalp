@@ -35,4 +35,10 @@ public class SharedPreferencesKey {
 				SharedPreferencesKey.PREFS_NAME, Context.MODE_PRIVATE);
 		return settings.getBoolean(key, defaultValue);
 	}
+	
+	public static boolean removePreferences(String key, Context context) {
+		SharedPreferences preferences = context.getSharedPreferences(
+				SharedPreferencesKey.PREFS_NAME, Context.MODE_PRIVATE);
+		return preferences.edit().remove(key).commit();
+	}
 }

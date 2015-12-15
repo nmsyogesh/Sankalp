@@ -1,12 +1,14 @@
 package org.sankalpnitjamshedpur.tabs;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import org.sankalpnitjamshedpur.CreateReportMail;
 import org.sankalpnitjamshedpur.R;
 import org.sankalpnitjamshedpur.db.DatabaseHandler;
+import org.sankalpnitjamshedpur.entity.Centre;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
 import org.sankalpnitjamshedpur.helper.NetworkStatusChangeReceiver;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
@@ -38,7 +40,7 @@ public class ClassRecordsFragment extends Fragment {
 	Context context;
 	DatabaseHandler dbHandler;
 	public NetworkStatusChangeReceiver networkStatusChangeReceiver;
-
+	ArrayList<Centre> centreList = new ArrayList<Centre>();
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -48,8 +50,17 @@ public class ClassRecordsFragment extends Fragment {
 		networkStatusChangeReceiver = new NetworkStatusChangeReceiver(context,
 				this);
 		dbHandler = new DatabaseHandler(context);
+		centreList = dbHandler.getListOfCentres();
 		populateView();
 		return android;
+	}
+	
+	String getCentrename(int id) {
+		for(Centre c: centreList) {
+			if(c.getCentreId()== id) 
+				return c.getCentreName();
+		}
+		return "";
 	}
 
 	public void populateView() {
@@ -94,9 +105,7 @@ public class ClassRecordsFragment extends Fragment {
 		TextView tv = new TextView(context);
 		Calendar classCalendar = Calendar.getInstance();
 		classCalendar.setTimeInMillis(classRecord.getStartTime());
-		tv.setText("Class Record"
-				+ "\n"
-				+ String.format("%02d",
+		tv.setText(String.format("%02d",
 						classCalendar.get(Calendar.DAY_OF_MONTH))
 				+ "-"
 				+ String.format("%02d", classCalendar.get(Calendar.MONTH))
@@ -109,7 +118,7 @@ public class ClassRecordsFragment extends Fragment {
 				+ ":"
 				+ String.format("%02d", classCalendar.get(Calendar.SECOND))
 				+ ")" + "\n" + "Centre: "
-				+ String.valueOf(classRecord.getCentreNo()));
+				+ getCentrename(classRecord.getCentreNo()));
 
 		tv.setGravity(Gravity.CENTER_HORIZONTAL);
 		tv.setPadding(13, 10, 13, 10);

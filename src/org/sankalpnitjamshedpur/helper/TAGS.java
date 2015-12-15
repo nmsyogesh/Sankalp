@@ -1,6 +1,7 @@
 package org.sankalpnitjamshedpur.helper;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -34,6 +35,8 @@ public class TAGS {
 	public static final String CLASS_LIST_URL = "http://www.sankalpnitjamshedpur.org/login/classList.php";
 	public static final String STUDENTS_LIST_URL = "http://www.sankalpnitjamshedpur.org/login/studentsList.php";
 	public static final String SUBJECTS_LIST_URL = "http://www.sankalpnitjamshedpur.org/login/subjectsList.php";
+	public static final String EXAMS_LIST_URL = "http://www.sankalpnitjamshedpur.org/login/examsList.php";
+	public static final String MARKS_SUBMIT_URL = "http://www.sankalpnitjamshedpur.org/login/postMarks.php";
 
 	// json response params
 	public static final String KEY_SUCCESS = "success";
@@ -64,10 +67,26 @@ public class TAGS {
 	public static final String KEY_SUBJECT_ID = "subjectId";
 	public static final String KEY_SUBJECT_NAME = "subjectName";
 
+	// for exam API
+	public static final String KEY_EXAMS = "exams";
+	public static final String KEY_EXAM_ID = "examId";
+	public static final String KEY_EXAM_TYPE = "examType";
+	public static final String KEY_EXAM_DATE = "examDate";
+	
+	// for marks API
+	public static final String KEY_MARKS = "marks";
+	public static final String KEY_MAX_MARKS = "maxMarks";
+	public static final String KEY_MARKS_OBTAINED = "marksObtained";
+
 	// sync targets
 	public static final String SYNC_CENTRES = "sync_centres";
 	public static final String SYNC_CLASSES = "sync_classes";
 	public static final String SYNC_SUBJECTS = "sync_subjects";
+	public static final String SYNC_EXAMS = "sync_exams";
+	
+	
+	public static final String KEY_FAILED_STUDENT_IDS = "failedStudentIds";
+	public static final String KEY_MARKS_JSON = "marksJson";
 
 	public static String generateHash(String string) {
 		byte[] hash = null;

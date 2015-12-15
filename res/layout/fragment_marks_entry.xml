@@ -9,15 +9,33 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="2dp"
+        android:layout_marginTop="2dp"
         android:orientation="horizontal" >
 
         <Button
-            android:id="@+id/centreSelect"
-            android:layout_width="match_parent"
+            android:id="@+id/examSelect"
+            android:layout_width="0dip"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
             android:background="@drawable/rectangle"
-            android:text="" />
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="12dp" />
+
+        <Button
+            android:id="@+id/centreSelect"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:background="@drawable/rectangle"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:text="Submit Centre"
+            android:maxLines="1"
+            android:textSize="12dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -32,9 +50,12 @@
             android:id="@+id/classSelect"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginLeft="3dp"
+            android:layout_weight="1.2"
             android:background="@drawable/rectangle"
-            android:text="" />
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="12dp" />
 
         <Button
             android:id="@+id/subjectSelect"
@@ -42,17 +63,23 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="3dp"
             android:layout_marginRight="3dp"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:background="@drawable/rectangle"
-            android:text="" />
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="12dp" />
 
         <Button
             android:id="@+id/maxMarksSelect"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginRight="3dp"
+            android:layout_weight="1.2"
             android:background="@drawable/rectangle"
-            android:text="Max Marks" />
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Max Marks"
+            android:textSize="12dp" />
     </LinearLayout>
 
     <ScrollView

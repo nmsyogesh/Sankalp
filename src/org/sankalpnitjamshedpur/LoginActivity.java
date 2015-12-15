@@ -1,32 +1,18 @@
 package org.sankalpnitjamshedpur;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.protocol.HTTP;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.sankalpnitjamshedpur.db.HttpRequestHandler;
 import org.sankalpnitjamshedpur.db.RegistrationStage;
-import org.sankalpnitjamshedpur.entity.Centre;
-import org.sankalpnitjamshedpur.entity.StudentClass;
 import org.sankalpnitjamshedpur.entity.User;
 import org.sankalpnitjamshedpur.helper.NetworkStatusChangeReceiver;
 import org.sankalpnitjamshedpur.helper.SharedPreferencesKey;
@@ -42,31 +28,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.opengl.Visibility;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.view.accessibility.AccessibilityManager.TouchExplorationStateChangeListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
-import com.facebook.GraphRequest;
-import com.facebook.GraphResponse;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
 
 public class LoginActivity extends Activity implements OnClickListener,
 		OnTouchListener, UserAuthenticationActivity {
@@ -80,16 +51,12 @@ public class LoginActivity extends Activity implements OnClickListener,
 	ProgressDialog progressDialog;
 	TextView errorView;
 
-	private ImageView fb_login_initiator;
-
 	Toast toast;
-	private CallbackManager callbackManager;
 	private HttpRequestHandler requestHandler;
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		FacebookSdk.sdkInitialize(this.getApplicationContext());
 		setContentView(R.layout.login_page);
 
 		if (SharedPreferencesKey.getBooleanFromSharedPreferences(
@@ -109,61 +76,6 @@ public class LoginActivity extends Activity implements OnClickListener,
 		loginButton.setOnClickListener(this);
 		inputText.setOnTouchListener(this);
 		passwordText.setOnTouchListener(this);
-		/*
-		 * fb_login_initiator = (ImageView) findViewById(R.id.fb_login);
-		 * fb_login_initiator.setOnClickListener(new OnClickListener() {
-		 * 
-		 * @Override public void onClick(View v) {
-		 * LoginManager.getInstance().logInWithReadPermissions(
-		 * LoginActivity.this, Arrays.asList("email")); } });
-		 */
-
-		/*
-		 * btnSignIn = (SignInButton) findViewById(R.id.google_sign_in);
-		 * btnSignIn.setOnClickListener(this); mGoogleApiClient = new
-		 * GoogleApiClient.Builder(getApplicationContext())
-		 * .addConnectionCallbacks(this) .addOnConnectionFailedListener(this)
-		 * .addApi(Plus.API) .addScope(Plus.SCOPE_PLUS_LOGIN).build();
-		 */
-
-		callbackManager = CallbackManager.Factory.create();
-
-		/*
-		 * LoginManager.getInstance().registerCallback(callbackManager, new
-		 * FacebookCallback<LoginResult>() {
-		 * 
-		 * @Override public void onSuccess(LoginResult loginResult) {
-		 * GraphRequest request = GraphRequest.newMeRequest(
-		 * loginResult.getAccessToken(), new
-		 * GraphRequest.GraphJSONObjectCallback() {
-		 * 
-		 * @Override public void onCompleted(JSONObject user, GraphResponse
-		 * response) { if (user.optString("email").isEmpty()) {
-		 * setError("No Email found for facebook user"); return; }
-		 * requestHandler = new HttpRequestHandler( LoginActivity.this,
-		 * RegistrationStage.FACEBOOK_LOGIN); progressDialog =
-		 * ProgressDialog.show( getApplicationContext(), "Please Wait",
-		 * "We are logging you in!!"); progressDialog.setCancelable(true);
-		 * Log.v("user details", response.toString()); Log.i("Login", "user " +
-		 * user.optString("email") + " has logged in through facebook");
-		 * 
-		 * requestHandler .execute(getHttpRegistrationGetRequest (
-		 * user.optString("email") .toLowerCase(), TAGS.KEY_USER_EMAIL_ID));
-		 * 
-		 * Log.i("LOGIN", "generated login request for " +
-		 * user.optString("email"));
-		 * 
-		 * LoginManager.getInstance().logOut(); } }); Bundle parameters = new
-		 * Bundle(); parameters.putString("fields", "email");
-		 * request.setParameters(parameters); request.executeAsync(); }
-		 * 
-		 * @Override public void onCancel() {
-		 * setError("User canceleed facebook login!!"); }
-		 * 
-		 * @Override public void onError(FacebookException error) {
-		 * setError("Facebook login error!!"); } });
-		 */
-
 		passwordText.setText("");
 
 		if (registeredType != null) {
@@ -237,15 +149,15 @@ public class LoginActivity extends Activity implements OnClickListener,
 
 			requestHandler = new HttpRequestHandler(this,
 					RegistrationStage.LOGIN);
-			requestHandler.execute(getHttpRegistrationGetRequest(
+			requestHandler.execute(getHttpRegistrationPostRequest(
 					inputString.toUpperCase(), loginType));
 			progressDialog = ProgressDialog.show(this, "Please Wait",
 					"We are logging you in!!");
 			progressDialog.setCancelable(true);
-		}
+		} 
 	}
 
-	private HttpUriRequest getHttpRegistrationGetRequest(String value,
+	private HttpUriRequest getHttpRegistrationPostRequest(String value,
 			String loginType) {
 
 		HttpPost postRequest = new HttpPost(TAGS.VOLUNTEERS_LOGIN_URL);
@@ -377,7 +289,6 @@ public class LoginActivity extends Activity implements OnClickListener,
 					Class.forName("org.sankalpnitjamshedpur.HomePage"));
 			// Pass this registered user in sharedPrefernces for further usage
 			startActivity(homePageActivityIntent);
-
 			finish();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -412,28 +323,10 @@ public class LoginActivity extends Activity implements OnClickListener,
 	public Context getApplicationContext() {
 		return this;
 	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int responseCode,
-			Intent intent) {
-		super.onActivityResult(requestCode, responseCode, intent);
-		callbackManager.onActivityResult(requestCode, responseCode, intent);
-	}
-
-	@Override
-	public void finish() {
-		if (toast != null)
-			toast.cancel();
-		if (requestHandler != null) {
-			requestHandler.cancel(false);
-		}
-		LoginManager.getInstance().logOut();
-		super.finish();
-	}
-
+	
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		removeError();
 		return false;
-	}	
+	}
 }

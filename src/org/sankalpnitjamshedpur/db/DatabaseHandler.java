@@ -7,6 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.sankalpnitjamshedpur.entity.Centre;
 import org.sankalpnitjamshedpur.entity.ClassRecord;
+import org.sankalpnitjamshedpur.entity.Exam;
 import org.sankalpnitjamshedpur.entity.StudentClass;
 import org.sankalpnitjamshedpur.entity.Subject;
 import org.sankalpnitjamshedpur.entity.User;
@@ -23,7 +24,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 	// All Static variables
 	// Database Version
-	private static final int DATABASE_VERSION = 8;
+	private static final int DATABASE_VERSION = 9;
 
 	// Database Name
 	private static final String DATABASE_NAME = "sankalp";
@@ -37,6 +38,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private static final String TABLE_CLASSES = "classes";
 	// Subjects table name
 	private static final String TABLE_SUBJECTS = "subjects";
+	// Exams table name
+	private static final String TABLE_EXAMS = "exams";
 
 	public DatabaseHandler(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -74,12 +77,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				+ TAGS.KEY_SUBJECT_ID + " INTEGER PRIMARY KEY,"
 				+ TAGS.KEY_SUBJECT_NAME + " TEXT, " + TAGS.KEY_CLASS_ID
 				+ " INTEGER" + ")";
+		
+		String CREATE_EXAMS_TABLE = "CREATE TABLE " + TABLE_EXAMS + "("
+						+ TAGS.KEY_EXAM_ID + " INTEGER PRIMARY KEY,"
+						+ TAGS.KEY_EXAM_DATE + " TEXT, " + TAGS.KEY_EXAM_TYPE
+						+ " TEXT " + ")";
 
 		db.execSQL(CREATE_CONTACTS_TABLE);
 		db.execSQL(CREATE_RECORDS_TABLE);
 		db.execSQL(CREATE_CENTRE_TABLE);
 		db.execSQL(CREATE_CLASS_TABLE);
 		db.execSQL(CREATE_SUBJECTS_TABLE);
+		db.execSQL(CREATE_EXAMS_TABLE);
 	}
 
 	// Upgrading database
@@ -92,6 +101,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CENTRES);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CLASSES);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_SUBJECTS);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_EXAMS);
 
 		// Create tables again
 		onCreate(db);
@@ -123,15 +133,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	public void addCentre(Centre centre) {
 		SQLiteDatabase db = this.getWritableDatabase();
 
-		// if centre already exists
-		Cursor cursor = db.query(TABLE_CENTRES, new String[] {
-				TAGS.KEY_CENTRE_ID, TAGS.KEY_CENTRE_NAME }, TAGS.KEY_CENTRE_ID
-				+ "=? and " + TAGS.KEY_CENTRE_NAME + "=?", new String[] {
-				String.valueOf(centre.getCentreId()), centre.getCentreName() },
-				null, null, null, null);
-		if (cursor != null && cursor.getCount() > 0)
-			return;
-
 		ContentValues values = new ContentValues();
 		values.put(TAGS.KEY_CENTRE_ID, centre.getCentreId()); // Contact Name
 		values.put(TAGS.KEY_CENTRE_NAME, centre.getCentreName());
@@ -144,14 +145,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	// Adding new class
 	public void addClass(StudentClass studentClass) {
 		SQLiteDatabase db = this.getWritableDatabase();
-
-		// if class already exists
-		Cursor cursor = db.query(TABLE_CLASSES,
-				new String[] { TAGS.KEY_CLASS_ID }, TAGS.KEY_CLASS_ID + "=?",
-				new String[] { String.valueOf(studentClass.getClassId()) },
-				null, null, null, null);
-		if (cursor != null && cursor.getCount() > 0)
-			return;
 
 		ContentValues values = new ContentValues();
 		values.put(TAGS.KEY_CLASS_ID, studentClass.getClassId()); // Contact
@@ -166,15 +159,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	public void addSubject(Subject subject) {
 		SQLiteDatabase db = this.getWritableDatabase();
 
-		// if class already exists
-		Cursor cursor = db.query(TABLE_SUBJECTS,
-				new String[] { TAGS.KEY_SUBJECT_ID }, TAGS.KEY_SUBJECT_ID
-						+ "=?",
-				new String[] { String.valueOf(subject.getSubjectId()) }, null,
-				null, null, null);
-		if (cursor != null && cursor.getCount() > 0)
-			return;
-
 		ContentValues values = new ContentValues();
 		values.put(TAGS.KEY_SUBJECT_ID, subject.getSubjectId());
 		values.put(TAGS.KEY_CLASS_ID, subject.getClassId());
@@ -183,6 +167,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		// Inserting Row
 		db.insert(TABLE_SUBJECTS, null, values);
 		db.close(); // Closing database connection
+	}
+
+	public void addExam(Exam exam) {
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		ContentValues values = new ContentValues();
+		values.put(TAGS.KEY_EXAM_ID, exam.getExamId());
+		values.put(TAGS.KEY_EXAM_DATE, exam.getExamDate());
+		values.put(TAGS.KEY_EXAM_TYPE, exam.getExamType());
+
+		// Inserting Row
+		db.insert(TABLE_EXAMS, null, values);
+		db.close(); // Closing database connection		
 	}
 
 	// Adding new contact
@@ -346,6 +343,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			} while (cursor.moveToNext());
 		}
 		return subjects;
+	}
+	
+	public ArrayList<Exam> getListOfExams() {
+		ArrayList<Exam> exams = new ArrayList<Exam>();
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		Cursor cursor = db
+				.query(TABLE_EXAMS, new String[] { TAGS.KEY_EXAM_ID,
+						TAGS.KEY_EXAM_DATE, TAGS.KEY_EXAM_TYPE }, null, null,
+						null, null, null, null); 
+
+		if (cursor.moveToFirst()) {
+			do {
+				Exam exam = new Exam(cursor.getInt(0),
+						cursor.getString(1), cursor.getString(2));
+				exams.add(exam);
+			} while (cursor.moveToNext());
+		}
+		return exams;
 	}
 
 	// Getting single contact
@@ -543,5 +559,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		// return count
 		return cursor.getCount();
 	}
-
+	
+	public void deleteClassesTable() {
+		SQLiteDatabase db = this.getReadableDatabase();
+		db.delete(TABLE_CLASSES, null, null);
+		db.close();
+	}
+	public void deleteSubjectsTable() {
+		SQLiteDatabase db = this.getReadableDatabase();
+		db.delete(TABLE_SUBJECTS, null, null);
+		db.close();
+	}
+	public void deleteCentresTable() {
+		SQLiteDatabase db = this.getReadableDatabase();
+		db.delete(TABLE_CENTRES, null, null);
+		db.close();
+	}
+	public void deleteExamsTable() {
+		SQLiteDatabase db = this.getReadableDatabase();
+		db.delete(TABLE_EXAMS, null, null);
+		db.close();
+	}
 }

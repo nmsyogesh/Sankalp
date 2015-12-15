@@ -95,6 +95,20 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 			gpsTracker = new GPSTracker(android.getContext());
 			dbHandler = new DatabaseHandler(android.getContext());
 		}
+		
+		if(SharedPreferencesKey.getBooleanFromSharedPreferences("takeClassStateSaved", false, context)) {
+			// set starttime
+			startLocation = new Location(LocationManager.GPS_PROVIDER);
+			startLocation.setLatitude(Double.parseDouble(SharedPreferencesKey.getStringFromSharedPreferences("startLatitude", "", context)));
+			startLocation.setLongitude(Double.parseDouble(SharedPreferencesKey.getStringFromSharedPreferences("startLongitude", "", context)));
+			
+			startTime = Long.parseLong(SharedPreferencesKey.getStringFromSharedPreferences("startTime", "", context));					
+						
+			classAlreadyStarted = true;
+			
+			SharedPreferencesKey.removePreferences("takeClassStateSaved", context);
+		}
+		
 		volunteerId = SharedPreferencesKey.getStringFromSharedPreferences(
 				TAGS.KEY_VOLUNTEER_ID, "", android.getContext());
 
@@ -137,7 +151,8 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 					Toast.LENGTH_LONG).show();
 			Log.d("TakeClass", "Sorry! Your device doesn't support camera");
 		}
-		Log.i("TakeClass", "Device supports camera");
+
+		
 		return android;
 	}
 
@@ -572,5 +587,17 @@ public class TakeClassFragment extends Fragment implements OnClickListener {
 		if (!gpsTracker.canGetLocation()) {
 			gpsDialog = gpsTracker.showSettingsAlert();
 		}
+	}
+	
+	@Override
+	public void onPause() {
+	    super.onPause();
+
+	    if(classAlreadyStarted) {
+	    	SharedPreferencesKey.putInSharedPreferences("startLatitude", String.valueOf(startLocation.getLatitude()), context);
+	    	SharedPreferencesKey.putInSharedPreferences("startLongitude", String.valueOf(startLocation.getLongitude()), context);
+	    	SharedPreferencesKey.putInSharedPreferences("startTime", String.valueOf(startTime), context);
+	    	SharedPreferencesKey.putInSharedPreferences("takeClassStateSaved", true, context);
+	    }
 	}
 }
